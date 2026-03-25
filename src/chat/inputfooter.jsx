@@ -1,104 +1,95 @@
-import React, { useRef, useState } from 'react'
-import authapi from '../api/user.api';
+import React, { useRef, useState } from 'react';
 import { useAuth } from '../context/context';
 import socket from '../socket/socket.io';
 import { Image, Send } from 'lucide-react';
+import Messageapi from '../api/message.api';
 
-function Inputfooter({data,setMessages,typingTimeoutRef}) {
-  const [input,setinput] = useState("")
-  const [inputfile,setinputfile] = useState("")
+function Inputfooter({ setmessges, typingTimeoutRef }) {
+  const [input, setinput] = useState('');
+  const [inputfile, setinputfile] = useState('');
   const fileRef = useRef();
   const [preview, setPreview] = useState(null);
+  const { user, selectedchat } = useAuth();
   const typingRef = useRef(false);
-  const {user} = useAuth();
 
   const handleclick = async () => {
-  if (!input.trim() && !inputfile) return;
+    if (!input.trim() && !inputfile) return;
+    if (!selectedchat?._id) return;
+    socket.emit('stop_typing', {
+      chatId: selectedchat._id,
+      userId: user._id,
+    });
+    typingRef.current = false;
+    clearTimeout(typingTimeoutRef.current);
+    const tempId = Date.now();
 
-  socket.emit("stop_typing", {
-    chatId: data._id,
-    userId: user._id,
-  });
-  typingRef.current = false;
-  clearTimeout(typingTimeoutRef.current);
+    const text = input;
+    const file = inputfile;
 
-  const tempId = Date.now();
+    setinput('');
+    setinputfile(null);
+    setPreview(null);
+    fileRef.current.value = '';
 
-  const text = input;
-  const file = inputfile;
+    const tempImageUrl = file ? URL.createObjectURL(file) : null;
 
-  setinput("");
-  setinputfile(null);
-  setPreview(null);
-  fileRef.current.value = "";
+    const tempMessage = {
+      _id: tempId,
+      tempId,
+      isTemp: true,
+      content: text,
+      image: tempImageUrl ? { url: tempImageUrl } : null,
+      sender: {
+        _id: user._id,
+        avatar: user.avatar,
+        fullname: user.fullname,
+      },
+      chat: selectedchat._id,
+      createdAt: new Date(),
+      status: 'sending',
+    };
 
-  const tempImageUrl = file
-    ? URL.createObjectURL(file)
-    : null;
+    setmessges((prev) => [...prev, tempMessage]);
+    try {
+      const formData = new FormData();
+      formData.append('content', text);
+      formData.append('chat', selectedchat._id);
 
-  const tempMessage = {
-    _id: tempId,
-    tempId,
-    isTemp: true,
-    content: text,
-    image: tempImageUrl ? { url: tempImageUrl } : null,
-    sender: { _id: user._id },
-    chat: data._id,
-    createdAt: new Date(),
-    status: "sending",
+      if (file) {
+        formData.append('image', file);
+      }
+
+      const res = await Messageapi.sendmessage(formData);
+      const savedMessage = res.data.data;
+
+      setmessges((prev) =>
+        prev.map((msg) => (msg.tempId === tempId ? savedMessage : msg))
+      );
+
+      if (tempImageUrl) {
+        URL.revokeObjectURL(tempImageUrl);
+      }
+    } catch (error) {
+      console.log(error);
+
+      setmessges((prev) =>
+        prev.map((msg) =>
+          msg.tempId === tempId ? { ...msg, status: 'failed' } : msg
+        )
+      );
+    }
   };
 
-  setMessages(prev => [...prev, tempMessage]);
-
-  try {
-    const formData = new FormData();
-    formData.append("content", text);
-    formData.append("chat", data._id);
-
-    if (file) {
-      formData.append("image", file);
-    }
-
-    const res = await authapi.sendmessage(formData);
-    const savedMessage = res.data.data;
-
-    setMessages(prev =>
-      prev.map(msg =>
-        msg.tempId === tempId ? savedMessage : msg
-      )
-    );
-
-    if (tempImageUrl) {
-      URL.revokeObjectURL(tempImageUrl);
-    }
-
-  } catch (error) {
-    console.log(error);
-
-    setMessages(prev =>
-      prev.map(msg =>
-        msg.tempId === tempId
-          ? { ...msg, status: "failed" }
-          : msg
-      )
-    );
-  }
-};
-
   return (
-   <div className="border p-1 m-1 rounded-4xl mb-3">
-
+    <div className="border p-1 m-1 rounded-4xl mb-3">
       {preview && (
         <div className="mb-2 ml-3 relative w-fit">
-          <img
-            src={preview}
-            className="w-24 h-24 object-cover rounded-md"
-          />
+          <img src={preview} className="w-24 h-24 object-cover rounded-md" />
 
           <button
             onClick={() => {
               setinputfile(null);
-              fileRef.current.value = "";
+              fileRef.current.value = '';
 
               if (preview) {
                 URL.revokeObjectURL(preview);
@@ -113,7 +104,6 @@ function Inputfooter({data,setMessages,typingTimeoutRef}) {
       )}
 
       <div className="flex items-center gap-3">
-
         <label className="cursor-pointer ml-3 text-gray-600 hover:text-gray-500">
           <Image />
           <input
@@ -138,29 +128,27 @@ function Inputfooter({data,setMessages,typingTimeoutRef}) {
           onChange={(e) => {
             const value = e.target.value;
             setinput(value);
-
-            if (!data?._id) return;
+            if (!selectedchat?._id) return;
 
             if (!typingRef.current) {
-              socket.emit("typing", {
-                chatId: data._id,
+              socket.emit('typing', {
+                chatId: selectedchat._id,
                 userId: user._id,
               });
               typingRef.current = true;
             }
 
             clearTimeout(typingTimeoutRef.current);
-
             typingTimeoutRef.current = setTimeout(() => {
-              socket.emit("stop_typing", {
-                chatId: data._id,
+              socket.emit('stop_typing', {
+                chatId: selectedchat._id,
                 userId: user._id,
               });
               typingRef.current = false;
             }, 1000);
           }}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === 'Enter') {
               handleclick(inputfile);
             }
           }}
@@ -175,10 +163,9 @@ function Inputfooter({data,setMessages,typingTimeoutRef}) {
         >
           <Send />
         </button>
-
       </div>
     </div>
-  )
+  );
 }
 
-export default Inputfooter
+export default Inputfooter;

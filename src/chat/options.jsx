@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from "react";
-import authapi from "../api/user.api";
+import React, { useEffect, useRef } from 'react';
+import Messageapi from '../api/message.api';
+// import authapi from "../api/user.api";
 
-function Options({ isMyMessage, setActiveMenu, activeMenu, msg, setMessages }) {
+function Options({ isMyMessage, setActiveMenu, activeMenu, msg }) {
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -13,47 +14,49 @@ function Options({ isMyMessage, setActiveMenu, activeMenu, msg, setMessages }) {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [activeMenu, msg._id, setActiveMenu]);
 
-  const handleDelete = async () => {
-    try {
-      await authapi.deletemessage(msg._id);
+  //   const handleDelete = async () => {
+  //     try {
+  // await Messageapi.deletemessage(msg._id);
 
-      setMessages((prev) => prev.filter((m) => m._id !== msg._id));
+  //       setmessges((prev) => prev.filter((m) => m._id !== msg._id));
 
-      setActiveMenu(null);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //       setActiveMenu(null);
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   };
 
   return (
     <div
-      className={`relative group rounded-lg max-w-xs break-words ${
-        isMyMessage ? "bg-black text-white" : "bg-green-300 text-black"
+      className={`relative group px-2 py-0.5 rounded-2xl max-w-[65%] break-words ${
+        isMyMessage
+          ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+          : 'bg-gray-700 text-white'
       }`}
     >
-      <div
-        onClick={(e) => {
-          e.stopPropagation();
+      {/* <div
+        onClick={() => {
+          // e.stopPropagation();
           setActiveMenu(activeMenu === msg._id ? null : msg._id);
         }}
         className={`absolute top-1 ${
-          isMyMessage ? "-left-6" : "-right-6"
+          isMyMessage ? '-left-6' : '-right-6'
         } text-black pl-2 pr-2 text-lg opacity-0 group-hover:opacity-100 transition cursor-pointer`}
       >
         ⋮
       </div>
 
-      {activeMenu === msg._id && (
+     {activeMenu === msg._id && (
         <div
           ref={menuRef}
           className={`absolute -top-14 ${
-            isMyMessage ? "-left-28" : "-right-28"
+            isMyMessage ? '-left-28' : '-right-28'
           } bg-white shadow-lg rounded-md text-sm z-50`}
         >
           {isMyMessage ? (
@@ -82,9 +85,9 @@ function Options({ isMyMessage, setActiveMenu, activeMenu, msg, setMessages }) {
                 🚩 Report
               </div>
             </>
-          )}
+          )} 
         </div>
-      )}
+      )}*/}
 
       {msg.image?.url && (
         <img

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import authapi from "../api/user.api";
+import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import authapi from '../api/user.api';
 
 function AuthRedirect({ children }) {
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,12 @@ function AuthRedirect({ children }) {
     checkUser();
   }, []);
 
-  if (loading) return <div className="bg-black flex items-center justify-center min-h-screen w-full text-white">Loading...</div>;
+  if (loading)
+    return (
+      <div className="bg-black flex items-center justify-center min-h-screen w-full text-white">
+        Loading...
+      </div>
+    );
 
   // If logged in → go dashboard
   if (isAuth) return <Navigate to="/dashboard" replace />;

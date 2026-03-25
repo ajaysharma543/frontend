@@ -1,258 +1,320 @@
-import { useEffect, useState } from "react";
-import authapi from "../api/user.api";
-import { useAuth } from "../context/context";
-import socket from "../socket/socket.io";
-import { GetTimeAgo } from "../context/gettimeago";
-import Leftuser from "./Leftuser";
+import { useEffect, useState } from 'react';
+import Leftuser from './Leftuser';
+import Groupchat from './groupchat';
+import { useAuth } from '../context/context';
+import Chatapi from '../api/chat.api';
+import socket from '../socket/socket.io';
+import { useRef } from 'react';
 
-function Leftchat({ search,setdata,data }) {
-  const [users, setUsers] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const { user} = useAuth();
-const [, forceUpdate] = useState(0);
+function Leftchat({ search }) {
+  const [chatUsers, setChatUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [debounce, setdebounce] = useState('');
+  const { user, allUsers, selectedchat } = useAuth();
+  const handlerRef = useRef();
+  const selectedChatRef = useRef(selectedchat);
+  useEffect(() => {
+    const fetchchats = async () => {
+      try {
+        setLoading(true);
 
-useEffect(() => {
-  const getUsers = async () => {
-    try {
-      const usersRes = await authapi.getallusers();
-      const chatsRes = await authapi.fetchchat();
+        const res = await Chatapi.fetchchat();
+        const allChats = res.data.data;
+        console.log(allChats);
 
-      const users = usersRes.data.data.users;
-      const chats = chatsRes.data.data;
+        const chatMap = new Map();
 
-      const chatMap = new Map();
-      chats.forEach((c) => {
-        c.members?.forEach((m) => {
-          if (m?._id !== user?._id) {
-            chatMap.set(m._id, c);
+        allChats.forEach((c) => {
+          const lastMsg = c.lastMessage || null;
+
+          if (c.isGroup) {
+            chatMap.set(c._id, {
+              _id: c._id,
+              isGroup: true,
+              chatName: c.chatName,
+              avatar: c.avatar,
+              members: c.members,
+              lastMessage: lastMsg,
+              unreadCount: c.unreadCount || 0,
+            });
+          } else {
+            const otherUser = c.members?.find((m) => m?._id !== user?._id);
+
+            if (otherUser) {
+              chatMap.set(otherUser._id, {
+                ...otherUser,
+                isGroup: false,
+                chatId: c._id,
+                lastMessage: lastMsg,
+                unreadCount: c.unreadCount || 0,
+              });
+            }
           }
         });
-      });
 
-      const formatted = users
-        .filter((u) => u._id !== user?._id)
-        .map((u) => {
-          const chat = chatMap.get(u._id);
+        const formatted = Array.from(chatMap.values());
+
+        formatted.sort((a, b) => {
+          const timeA = a.lastMessage?.createdAt || 0;
+          const timeB = b.lastMessage?.createdAt || 0;
+          return new Date(timeB) - new Date(timeA);
+        });
+        setChatUsers(formatted);
+        setFilteredUsers(formatted);
+
+        allChats.forEach((c) => {
+          socket.emit('join_chat', c._id);
+        });
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchchats();
+  }, [user?._id, allUsers]);
+
+  useEffect(() => {
+    if (selectedchat?._id) {
+      socket.emit('join_chat', selectedchat._id);
+    }
+  }, [selectedchat?._id]);
+
+  useEffect(() => {
+    socket.on('connect', () => {});
+  }, []);
+
+  useEffect(() => {
+    if (user?._id) {
+      socket.emit('join_user', user._id);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    selectedChatRef.current = selectedchat;
+  }, [selectedchat]);
+
+  useEffect(() => {
+    handlerRef.current = (newMsg) => {
+      const chatId = newMsg.chat?._id || newMsg.chat;
+      const messageId = newMsg._id;
+
+      setChatUsers((prev) => {
+        let found = false;
+
+        let updated = prev.map((chat) => {
+          const isSameChat = chat.isGroup
+            ? chat._id === chatId
+            : chat.chatId === chatId;
+
+          if (isSameChat) {
+            found = true;
+
+            const isSameMessage =
+              chat.lastMessage?._id?.toString() === messageId?.toString();
+
+            if (isSameMessage) {
+              return chat;
+            }
+
+            const isCurrentChatOpen = selectedChatRef.current?._id === chatId;
+
+            return {
+              ...chat,
+              lastMessage: newMsg,
+              unreadCount: isCurrentChatOpen ? 0 : (chat.unreadCount || 0) + 1,
+            };
+          }
+
+          return chat;
+        });
+
+        if (!found && newMsg.chat) {
+          let newChatItem;
+
+          if (newMsg.chat.isGroup) {
+            newChatItem = {
+              _id: newMsg.chat._id,
+              isGroup: true,
+              chatName: newMsg.chat.chatName,
+              members: newMsg.chat.members,
+              lastMessage: newMsg,
+              unreadCount: 1,
+            };
+          } else {
+            const otherUser = newMsg.chat.members?.find(
+              (m) => m._id !== user._id
+            );
+
+            newChatItem = {
+              ...otherUser,
+              isGroup: false,
+              chatId: newMsg.chat._id,
+              lastMessage: newMsg,
+              unreadCount: 1,
+            };
+          }
+
+          updated = [newChatItem, ...prev];
+        }
+
+        updated.sort((a, b) => {
+          return (
+            new Date(b.lastMessage?.createdAt || 0) -
+            new Date(a.lastMessage?.createdAt || 0)
+          );
+        });
+
+        setFilteredUsers(updated);
+        return updated;
+      });
+    };
+  }, [selectedchat, user?._id]);
+
+  useEffect(() => {
+    const listener = (msg) => handlerRef.current?.(msg);
+
+    socket.on('new_message', listener);
+
+    return () => {
+      socket.off('new_message', listener);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleMessagesRead = ({ chatId, userId }) => {
+      const updateFn = (prev) =>
+        prev.map((chat) => {
+          const isSameChat = chat.isGroup
+            ? chat._id?.toString() === chatId?.toString()
+            : chat.chatId?.toString() === chatId?.toString();
+
+          if (!isSameChat || !chat.lastMessage) return chat;
+
+          const normalizedReadBy = (chat.lastMessage.readby || []).map((id) =>
+            id?._id ? id._id.toString() : id.toString()
+          );
+
+          const updatedReadBy = [
+            ...new Set([...normalizedReadBy, userId.toString()]),
+          ];
 
           return {
-            ...u,
-            chatId: chat?._id || null,
-            lastMessage: chat?.lastMessage || null,
-            unreadCount: chat?.unreadCount || 0,
+            ...chat,
+            lastMessage: {
+              ...chat.lastMessage,
+              readby: updatedReadBy,
+            },
           };
         });
 
-      formatted.sort((a, b) => {
-        const timeA = a.lastMessage?.createdAt || 0;
-        const timeB = b.lastMessage?.createdAt || 0;
-        return new Date(timeB) - new Date(timeA);
-      });
+      setChatUsers(updateFn);
+      setFilteredUsers(updateFn);
+    };
 
-      setUsers(formatted);
-      setAllUsers(formatted);
+    socket.on('messages_read', handleMessagesRead);
 
-      chats.forEach((c) => {
-        socket.emit("join_chat", c._id);
-      });
-
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  getUsers();
-}, [user]);
-
-useEffect(() => {
-  socket.on("connect", () => {});
-}, []);
-
-
-useEffect(() => {
-  if(user?._id){
-    socket.emit("join_user", user._id);
-  }
-}, [user]);
-
-useEffect(() => {
-const handler = async (message) => {
-  setUsers(prev => {
-    let found = false;
-
-    const updated = prev.map(u => {
-      if (message.chat?._id?.toString() === u.chatId?.toString()) {
-        found = true;
-
-        const isRead = message.readby?.some(
-          id =>
-            id?.toString?.() === user?._id?.toString() ||
-            id?._id?.toString?.() === user?._id?.toString()
-        );
-
-        const isCurrentChat =
-          data?._id?.toString() === u.chatId?.toString();
-
-        let newUnreadCount = u.unreadCount || 0;
-
-        if (isCurrentChat) {
-          newUnreadCount = 0;
-        } else if (
-          message.sender?._id?.toString() !== user?._id?.toString() &&
-          !isRead
-        ) {
-          newUnreadCount += 1;
-        }
-
-        return {
-          ...u,
-          chatId: message.chat._id, 
-          lastMessage: message,
-          unreadCount: newUnreadCount,
-        };
-      }
-
-      return u;
-    });
-
-const finalList = found ? updated : (() => {
-  const otherUser = message.chat.members.find(
-    m => m._id.toString() !== user._id.toString()
-  );
-
-  if (otherUser) {
-    const filtered = updated.filter(
-      u => u._id.toString() !== otherUser._id.toString()
-    );
-
-    filtered.unshift({
-      ...otherUser,
-      chatId: message.chat._id,
-      lastMessage: message,
-      unreadCount:
-        message.sender._id.toString() === user._id.toString()
-          ? 0
-          : 1,
-    });
-
-    return filtered;
-  }
-
-  return updated;
-})();
-
-finalList.sort((a, b) => {
-  const timeA = a.lastMessage?.createdAt || 0;
-  const timeB = b.lastMessage?.createdAt || 0;
-  return new Date(timeB) - new Date(timeA);
-});
-
-return finalList;
-
-  });
-
-  if (data?._id === message.chat._id) {
-    await authapi.markasread(message.chat._id);
-  }
-};
-
-  socket.on("new_message", handler);
-
-  return () => socket.off("new_message", handler);
-}, [data?._id, user]);
-
-useEffect(() => {
-  if(data?._id){
-     socket.emit("join_chat", data._id);
-  }
-}, [data?._id]);
-
-useEffect(() => {
-  const handler = ({ chatId, userId }) => {
-    setUsers(prev =>
-      prev.map(u => {
-        if (u.chatId?.toString() !== chatId?.toString() || !u.lastMessage) {
-          return u;
-        }
-
-        const senderId = u.lastMessage?.sender?._id?.toString();
-        const isMyMessage = senderId === user?._id?.toString();
-
-        const normalizedReadBy = (u.lastMessage?.readby || []).map(id =>
-          id?._id ? id._id.toString() : id.toString()
-        );
-
-        const updatedReadBy = [
-          ...new Set([...normalizedReadBy, userId.toString()])
-        ];
-
-        const isReaderNotMe = userId.toString() !== user?._id?.toString();
-
-        let newUnread = u.unreadCount || 0;
-
-        if (isMyMessage && isReaderNotMe) {
-          newUnread = Math.max(newUnread - 1, 0);
-        }
-
-        return {
-          ...u,
-          lastMessage: {
-            ...u.lastMessage,
-            readby: updatedReadBy
-          },
-          unreadCount: newUnread
-        };
-      })
-    );
-  };
-
-  socket.on("messages_read", handler);
-
-  return () => socket.off("messages_read", handler);
-}, [user]);
-
-useEffect(() => {
-  const interval = setInterval(() => {
-    forceUpdate(n => n + 1);
-  }, 60000);
-
-  return () => clearInterval(interval);
-}, []);
+    return () => {
+      socket.off('messages_read', handleMessagesRead);
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(search);
+      setdebounce(search);
     }, 500);
     return () => clearTimeout(timer);
   }, [search]);
 
-useEffect(() => {
-  if (!debouncedSearch) {
-    setUsers(prev => (prev === allUsers ? prev : allUsers));
-    return;
-  }
+  useEffect(() => {
+    if (!debounce.trim()) {
+      setFilteredUsers(chatUsers);
+    }
+  }, [chatUsers, debounce]);
 
-  const search = debouncedSearch.toLowerCase();
+  useEffect(() => {
+    try {
+      if (!debounce.trim()) return;
+      setLoading(true);
 
-  const filtered = allUsers.filter((u) =>
-    u.fullname?.toLowerCase().includes(search)
-  );
+      const query = debounce.toLowerCase();
 
-  setUsers(filtered);
-}, [debouncedSearch, allUsers]);
+      const filtered = allUsers
+        .filter(
+          (u) =>
+            u.fullname?.toLowerCase().includes(query) ||
+            u.username?.toLowerCase().includes(query)
+        )
+        .map((u) => {
+          const existing = chatUsers.find((c) => !c.isGroup && c._id === u._id);
+          return (
+            existing || {
+              ...u,
+              isGroup: false,
+              chatId: null,
+              lastMessage: null,
+            }
+          );
+        });
 
+      setFilteredUsers(filtered);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [debounce, allUsers, chatUsers]);
+
+  useEffect(() => {
+    const handleGroupCreated = (group) => {
+      const newItem = {
+        _id: group._id,
+        isGroup: true,
+        chatName: group.chatName,
+        members: group.members,
+        lastMessage: null,
+      };
+
+      setChatUsers((prev) => {
+        const exists = prev.some((c) => c._id === newItem._id);
+        if (exists) return prev;
+
+        return [newItem, ...prev];
+      });
+
+      setFilteredUsers((prev) => {
+        const exists = prev.some((c) => c._id === newItem._id);
+        if (exists) return prev;
+
+        return [newItem, ...prev];
+      });
+    };
+
+    socket.on('group_created', handleGroupCreated);
+
+    return () => socket.off('group_created', handleGroupCreated);
+  }, []);
 
   return (
-  <div className="h-full flex flex-col bg-white">
-  <h1 className="p-4 text-lg font-semibold border-b">
-    My Chats
-  </h1>
-  <button className="mx-4 my-3 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg transition">
-    + New Group Chat
-  </button>
-    <Leftuser users={users} setUsers={setUsers} setdata={setdata}/>
-  </div>
-      );
-    }
+    <div className="h-full flex flex-col bg-white">
+      <h1 className="p-4 text-lg font-semibold border-b">My Chats</h1>
 
-    export default Leftchat;
+      <Groupchat
+        setFilteredUsers={setFilteredUsers}
+        setChatUsers={setChatUsers}
+      />
+      <Leftuser
+        filteredUsers={filteredUsers}
+        setFilteredUsers={setFilteredUsers}
+        setChatUsers={setChatUsers}
+        loading={loading}
+        error={error}
+      />
+    </div>
+  );
+}
+
+export default Leftchat;

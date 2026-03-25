@@ -1,7 +1,7 @@
-import { useForm } from "react-hook-form";
-import { Link ,useNavigate} from "react-router-dom";
-import bg from "../assets/684352c65e4b85577f86845f1d930748-62051589143562rhvtbduqia.jpg";
-import authapi from "../api/user.api";
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
+import bg from '../assets/684352c65e4b85577f86845f1d930748-62051589143562rhvtbduqia.jpg';
+import authapi from '../api/user.api';
 
 function Login() {
   const {
@@ -11,22 +11,21 @@ function Login() {
   } = useForm();
   const navigate = useNavigate();
 
-  const onSubmit = async(data) => {
- try {
-    const response = await authapi.login(data);
+  const onSubmit = async (data) => {
+    try {
+      const response = await authapi.login(data);
       const current = await authapi.getcurrentuser();
-      
+
       console.log(current);
-      navigate("/dashboard")
+      navigate('/dashboard');
     } catch (error) {
-const errorMessage =
+      const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.error ||
-        "Invalid email or password. Please try again.";
-        console.log(errorMessage);
-        
-    } 
-   };
+        'Invalid email or password. Please try again.';
+      console.log(errorMessage);
+    }
+  };
 
   return (
     <div
@@ -35,7 +34,7 @@ const errorMessage =
     >
       {/* Card */}
 
-  <div className="w-full max-w-md p-5 rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
+      <div className="w-full max-w-md p-5 rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
         {/* Heading */}
         <h2 className="text-3xl font-semibold text-center text-gray-600 mb-2">
           Login Account
@@ -47,7 +46,6 @@ const errorMessage =
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
           {/* Email */}
           <div>
             <label className="block text-sm font-semibold mb-2 text-white">
@@ -57,7 +55,7 @@ const errorMessage =
             <input
               type="email"
               placeholder="Enter your email"
-              {...register("email", { required: "Email is required" })}
+              {...register('email', { required: 'Email is required' })}
               className="w-full px-4 py-3 rounded-xl text-black border border-gray-300
               focus:outline-none focus:ring-2 focus:ring-orange-400
               transition duration-200"
@@ -79,7 +77,7 @@ const errorMessage =
             <input
               type="password"
               placeholder="Enter your password"
-              {...register("password", { required: "Password is required" })}
+              {...register('password', { required: 'Password is required' })}
               className="w-full px-4 py-3 rounded-xl text-black border border-gray-300
               focus:outline-none focus:ring-2 focus:ring-orange-400
               transition duration-200"
@@ -113,7 +111,7 @@ const errorMessage =
 
           {/* Signup */}
           <p className="text-center text-sm text-gray-200">
-            Don’t have an account?{" "}
+            Don’t have an account?{' '}
             <Link
               to="/"
               className="text-orange-300 hover:text-orange-400 font-medium"
@@ -121,7 +119,6 @@ const errorMessage =
               Sign up
             </Link>
           </p>
-
         </form>
       </div>
     </div>
