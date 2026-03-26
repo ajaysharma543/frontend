@@ -6,6 +6,9 @@ const authapi = {
   login: (data) => axiosclient.post('/users/login', data),
   logout: () => axiosclient.post('/users/logout'),
   getallusers: () => axiosclient.get('/users/getallusers'),
-};
+ getsearchuser: (search = "") =>
+axiosclient.get("/users/getallusers", {
+  params: { search }
+})};
 
 export default authapi;

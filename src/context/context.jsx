@@ -28,18 +28,14 @@ export const AuthProvider = ({ children }) => {
     getUser();
   }, []);
 
-  useEffect(() => {
-    const fetchAllUsers = async () => {
-      try {
-        const res = await authapi.getallusers();
-        setAllUsers(res.data.data.users);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-
-    fetchAllUsers();
-  }, []);
+const fetchUsers = async (search = "") => {
+  try {
+    const res = await authapi.getsearchuser(search);
+    setAllUsers(res.data.data.users);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   useEffect(() => {
     socket.on('user_online', (userId) => {
@@ -138,6 +134,7 @@ export const AuthProvider = ({ children }) => {
         setUser,
         chat,
         setchat,
+        fetchUsers,
         selectedchat,
         setselectedchat,
         onlineUsers,

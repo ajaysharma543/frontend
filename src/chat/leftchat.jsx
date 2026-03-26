@@ -6,13 +6,13 @@ import Chatapi from '../api/chat.api';
 import socket from '../socket/socket.io';
 import { useRef } from 'react';
 
-function Leftchat({ search }) {
+function Leftchat({ search,setsearch }) {
   const [chatUsers, setChatUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [debounce, setdebounce] = useState('');
-  const { user, allUsers, selectedchat } = useAuth();
+  const { user, allUsers, selectedchat,fetchUsers } = useAuth();
   const handlerRef = useRef();
   const selectedChatRef = useRef(selectedchat);
   useEffect(() => {
@@ -222,51 +222,43 @@ function Leftchat({ search }) {
     };
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setdebounce(search);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [search]);
+useEffect(() => {
+  if (!debounce.trim()) return;
 
-  useEffect(() => {
-    if (!debounce.trim()) {
-      setFilteredUsers(chatUsers);
-    }
-  }, [chatUsers, debounce]);
+  fetchUsers(debounce);
+}, [debounce]);
 
-  useEffect(() => {
-    try {
-      if (!debounce.trim()) return;
-      setLoading(true);
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setdebounce(search);
+  }, 400);
 
-      const query = debounce.toLowerCase();
+  return () => clearTimeout(timer);
+}, [search]);
 
-      const filtered = allUsers
-        .filter(
-          (u) =>
-            u.fullname?.toLowerCase().includes(query) ||
-            u.username?.toLowerCase().includes(query)
-        )
-        .map((u) => {
-          const existing = chatUsers.find((c) => !c.isGroup && c._id === u._id);
-          return (
-            existing || {
-              ...u,
-              isGroup: false,
-              chatId: null,
-              lastMessage: null,
-            }
-          );
-        });
+useEffect(() => {
+  if (!debounce.trim()) {
+    setFilteredUsers(chatUsers);
+    return;
+  }
 
-      setFilteredUsers(filtered);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [debounce, allUsers, chatUsers]);
+  const mapped = allUsers.map((u) => {
+    const existing = chatUsers.find(
+      (c) => !c.isGroup && c._id === u._id
+    );
+
+    return (
+      existing || {
+        ...u,
+        isGroup: false,
+        chatId: null,
+        lastMessage: null,
+      }
+    );
+  });
+
+  setFilteredUsers(mapped);
+}, [allUsers, chatUsers, debounce]);
 
   useEffect(() => {
     const handleGroupCreated = (group) => {
@@ -307,6 +299,8 @@ function Leftchat({ search }) {
         setChatUsers={setChatUsers}
       />
       <Leftuser
+      setsearch={setsearch}
+setdebounce={setdebounce}
         filteredUsers={filteredUsers}
         setFilteredUsers={setFilteredUsers}
         setChatUsers={setChatUsers}

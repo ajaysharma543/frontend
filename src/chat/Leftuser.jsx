@@ -8,6 +8,8 @@ import Messageapi from '../api/message.api';
 function Leftuser({
   setFilteredUsers,
   filteredUsers,
+  setsearch,
+  setdebounce,
   setChatUsers,
   loading,
   error,
@@ -37,6 +39,8 @@ function Leftuser({
       }
 
       setselectedchat(chat);
+      setsearch("")
+      setdebounce("")
       socket.emit('join_chat', chat._id);
 
       await Messageapi.markasread(chat._id);

@@ -83,9 +83,18 @@ function Displaymessage({ messages }) {
                   />
                 )}
 
-                {msg.content && <p className="px-3 py-2">{msg.content}</p>}
-              </div>
+               <div className="px-3 py-2">
+  {msg.content}
 
+  {/* ✅ STATUS */}
+  {isMyMessage && (
+    <div className="text-[10px] text-right mt-1 opacity-70">
+      {msg.status === "sending" && "Sending..."}
+      {msg.status === "failed" && "Failed ❌"}
+    </div>
+  )}
+</div>
+              </div>
               {isMyMessage && (
                 <div className="w-8 flex-shrink-0">
                   {isLastMessage && (
