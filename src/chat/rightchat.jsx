@@ -146,8 +146,7 @@ function Rightchat() {
   if (!selectedchat || !selectedchat._id) {
     return (
       <div className="h-full flex items-center justify-center flex-col gap-3">
-        <h2 className="text-gray-500 text-xl">nothing here click to message</h2>
-        <LogoutButton />
+       
       </div>
     );
   }

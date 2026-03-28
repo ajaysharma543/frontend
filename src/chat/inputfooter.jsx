@@ -9,16 +9,34 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
   const [inputfile, setinputfile] = useState('');
   const fileRef = useRef();
   const [preview, setPreview] = useState(null);
-  const { user, selectedchat } = useAuth();
+const { user, selectedchat, loading } = useAuth();
   const typingRef = useRef(false);
+// console.log("input select",selectedchat);
+// console.log("user",user);
 
-  const handleclick = async () => {
-    if (!input.trim() && !inputfile) return;
-    if (!selectedchat?._id) return;
-    socket.emit('stop_typing', {
-      chatId: selectedchat._id,
-      userId: user._id,
-    });
+ const handleclick = async () => {
+  
+  if (!input.trim() && !inputfile) return;
+
+if (!selectedchat?._id) {
+  console.log("No chat selected");
+  return;
+}
+
+if (!user?._id) {
+  console.log("User not ready");
+  return;
+}
+// console.log("SEND CLICK", {
+//   input,
+//   file: inputfile,
+//   user,
+//   selectedchat
+// });
+  socket.emit('stop_typing', {
+    chatId: selectedchat._id,
+    userId: user._id,
+  });
     typingRef.current = false;
     clearTimeout(typingTimeoutRef.current);
     const tempId = Date.now();
@@ -125,11 +143,11 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
         <input
           type="text"
           value={input}
+disabled={loading || !selectedchat?._id || !user}
           onChange={(e) => {
             const value = e.target.value;
             setinput(value);
-            if (!selectedchat?._id) return;
-
+if (!selectedchat?._id || !user?._id) return;
             if (!typingRef.current) {
               socket.emit('typing', {
                 chatId: selectedchat._id,
@@ -147,11 +165,12 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
               typingRef.current = false;
             }, 1000);
           }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleclick(inputfile);
-            }
-          }}
+      onKeyDown={(e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleclick();
+  }
+}}
           placeholder="Type a message..."
           className="flex-1 px-2 py-2 rounded-full focus:outline-none"
         />
@@ -159,8 +178,9 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
         <button
           type="button"
           className="text-gray-500 mr-3 cursor-pointer hover:text-gray-600"
-          onClick={() => handleclick(inputfile)}
-        >
+onClick={() => {
+  handleclick();
+}}        >
           <Send />
         </button>
       </div>

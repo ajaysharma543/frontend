@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authapi from '../api/user.api';
+import { useAuth } from '../context/context';
 
 function LogoutButton() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(''); // ✅ error state
   const navigate = useNavigate();
-
+  const {setUser} = useAuth();
   const handleLogout = async () => {
     setLoading(true);
     setError(''); // clear previous error
 
     try {
       await authapi.logout();
+        localStorage.removeItem("user");
+  setUser(null);
       console.log('✅ User logged out successfully');
       navigate('/login');
     } catch (err) {

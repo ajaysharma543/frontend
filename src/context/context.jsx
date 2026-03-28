@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import authapi from '../api/user.api';
 import socket from '../socket/socket.io';
@@ -6,23 +7,43 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+ const [user, setUser] = useState(() => {
+  const storedUser = localStorage.getItem("user");
+  return storedUser ? JSON.parse(storedUser) : null;
+  });
+  const [selectedchat, setselectedchat] = useState(); 
   const [allUsers, setAllUsers] = useState([]);
-  const [selectedchat, setselectedchat] = useState(null);
-  const [chat, setchat] = useState(null);
+
+ const [chat, setchat] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [lastSeenMap, setLastSeenMap] = useState({});
 
-  const getUser = async () => {
-    try {
-      const res = await authapi.getcurrentuser();
+  useEffect(() => {
+  if (selectedchat) {
+    localStorage.setItem("selectedchat", JSON.stringify(selectedchat));
+  }
+}, [selectedchat]);
+
+const getUser = async () => {
+  try {
+    const res = await authapi.getcurrentuser();
+
+    if (res?.data?.data) {
       setUser(res.data.data);
-    } catch {
+
+      localStorage.setItem("user", JSON.stringify(res.data.data));
+    } else {
       setUser(null);
-    } finally {
-      setLoading(false);
+      localStorage.removeItem("user");
     }
-  };
+  } catch (err) {
+    console.log(err);
+    setUser(null);
+    localStorage.removeItem("user");
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     getUser();
@@ -89,11 +110,6 @@ const fetchUsers = async (search = "") => {
     };
   }, [user]);
 
-  useEffect(() => {
-    if (!user?._id) return;
-
-    socket.emit('join_user', user._id);
-  }, [user?._id]);
 
   useEffect(() => {
     if (!user?._id) return;
@@ -128,20 +144,21 @@ const fetchUsers = async (search = "") => {
   return (
     <AuthContext.Provider
       value={{
-        allUsers,
-        setAllUsers,
-        user,
-        setUser,
-        chat,
-        setchat,
-        fetchUsers,
-        selectedchat,
-        setselectedchat,
-        onlineUsers,
-        lastSeenMap,
-      }}
+  allUsers,
+  setAllUsers,
+  user,
+  setUser,
+  chat,
+  setchat,
+  fetchUsers,
+  selectedchat,
+  setselectedchat,
+  onlineUsers,
+  lastSeenMap,
+  loading, 
+}}
     >
-      {!loading && children}
+{loading ? <div>Loading...</div> : children}
     </AuthContext.Provider>
   );
 };

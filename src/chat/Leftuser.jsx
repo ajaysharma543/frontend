@@ -37,7 +37,8 @@ function Leftuser({
       } else {
         chat = item;
       }
-
+      console.log("clicked chat",chat);
+      
       setselectedchat(chat);
       setsearch("")
       setdebounce("")

@@ -5,12 +5,14 @@ import bg from '../assets/684352c65e4b85577f86845f1d930748-62051589143562rhvtbdu
 import authapi from '../api/user.api';
 import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/context';
 function Signup() {
   const [fileName, setFileName] = useState('No file chosen');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  const {setUser} = useAuth();
   const onsubmit = async (data) => {
     try {
       setLoading(true);
@@ -25,6 +27,9 @@ function Signup() {
       const response = await authapi.signup(formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      localStorage.setItem("user", JSON.stringify(response.data.data.user));
+
+setUser(response.data.data.user);
 
       navigate('/dashboard', { replace: true });
       toast.success('Registration successful 🎉', { duration: 3000 });

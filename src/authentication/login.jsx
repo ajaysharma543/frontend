@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import bg from '../assets/684352c65e4b85577f86845f1d930748-62051589143562rhvtbduqia.jpg';
 import authapi from '../api/user.api';
+import { useAuth } from '../context/context';
 
 function Login() {
   const {
@@ -10,14 +11,21 @@ function Login() {
     formState: { errors },
   } = useForm();
   const navigate = useNavigate();
+  const {setUser} = useAuth();
 
   const onSubmit = async (data) => {
     try {
-      const response = await authapi.login(data);
-      const current = await authapi.getcurrentuser();
+    await authapi.login(data);
 
-      console.log(current);
-      navigate('/dashboard');
+  const current = await authapi.getcurrentuser();
+
+  localStorage.setItem("user", JSON.stringify(current.data.data.user));
+
+  setUser(current.data.data.user);
+
+  console.log(current.data.data.user);
+
+  navigate('/dashboard');
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
