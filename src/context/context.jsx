@@ -13,16 +13,11 @@ export const AuthProvider = ({ children }) => {
   });
   const [selectedchat, setselectedchat] = useState(); 
   const [allUsers, setAllUsers] = useState([]);
-
+const [searchUsers, setSearchUsers] = useState([]); 
  const [chat, setchat] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [lastSeenMap, setLastSeenMap] = useState({});
 
-  useEffect(() => {
-  if (selectedchat) {
-    localStorage.setItem("selectedchat", JSON.stringify(selectedchat));
-  }
-}, [selectedchat]);
 
 const getUser = async () => {
   try {
@@ -49,10 +44,23 @@ const getUser = async () => {
     getUser();
   }, []);
 
+  const getAllUsers = async () => {
+  try {
+    const res = await authapi.getsearchuser("");
+    setAllUsers(res.data.data.users);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+useEffect(() => {
+  getAllUsers();
+}, []);
+
 const fetchUsers = async (search = "") => {
   try {
     const res = await authapi.getsearchuser(search);
-    setAllUsers(res.data.data.users);
+setSearchUsers(res.data.data.users);
   } catch (err) {
     console.log(err);
   }
@@ -151,6 +159,7 @@ const fetchUsers = async (search = "") => {
   chat,
   setchat,
   fetchUsers,
+   searchUsers,
   selectedchat,
   setselectedchat,
   onlineUsers,

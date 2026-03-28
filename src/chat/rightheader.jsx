@@ -42,8 +42,7 @@ function Rightheader() {
           </p>
         </div>
       </div>
- <h2 className="text-gray-500 text-xl">nothing here click to message</h2>
-        <LogoutButton />
+
       <div className="flex items-center gap-4 text-gray-600">
         <PhoneCall className="cursor-pointer hover:text-gray-500" />
         <VideoIcon className="cursor-pointer hover:text-gray-500" />

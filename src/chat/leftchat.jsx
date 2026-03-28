@@ -5,6 +5,7 @@ import { useAuth } from '../context/context';
 import Chatapi from '../api/chat.api';
 import socket from '../socket/socket.io';
 import { useRef } from 'react';
+import { SearchIcon } from 'lucide-react';
 
 function Leftchat({ search,setsearch }) {
   const [chatUsers, setChatUsers] = useState([]);
@@ -12,13 +13,13 @@ function Leftchat({ search,setsearch }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [debounce, setdebounce] = useState('');
-  const { user, allUsers, selectedchat,fetchUsers } = useAuth();
+  const { user, allUsers,searchUsers, selectedchat,fetchUsers } = useAuth();
   const handlerRef = useRef();
   const selectedChatRef = useRef(selectedchat);
   const userRef = useRef(user);
 
 
-  console.log("first user",user);
+  // console.log("first user",user);
   useEffect(() => {
   userRef.current = user;
 }, [user]);
@@ -30,7 +31,7 @@ function Leftchat({ search,setsearch }) {
 
         const res = await Chatapi.fetchchat();
         const allChats = res.data.data;
-        console.log(allChats);
+        // console.log(allChats);
 
         const chatMap = new Map();
 
@@ -108,7 +109,7 @@ function Leftchat({ search,setsearch }) {
 
 useEffect(() => {
   handlerRef.current = (newMsg) => {
-      console.log("second user",user);
+      // console.log("second user",user);
 if (!userRef.current?._id){
         console.log("Skipping message, user not ready");
       return;
@@ -191,7 +192,7 @@ if (!userRef.current?._id){
 
  useEffect(() => {
   const listener = (msg) => {
-      console.log("🔥 SOCKET MESSAGE RECEIVED:", msg);
+      // console.log("🔥 SOCKET MESSAGE RECEIVED:", msg);
     if (handlerRef.current) {
       handlerRef.current(msg);
     }
@@ -262,7 +263,9 @@ useEffect(() => {
     return;
   }
 
-  const mapped = allUsers.map((u) => {
+  const searchText = debounce.toLowerCase();
+
+  const userResults = searchUsers.map((u) => {
     const existing = chatUsers.find(
       (c) => !c.isGroup && c._id === u._id
     );
@@ -277,8 +280,16 @@ useEffect(() => {
     );
   });
 
-  setFilteredUsers(mapped);
-}, [allUsers, chatUsers, debounce]);
+  const groupResults = chatUsers.filter(
+    (c) =>
+      c.isGroup &&
+      c.chatName?.toLowerCase().includes(searchText)
+  );
+
+  const combined = [...groupResults, ...userResults];
+
+  setFilteredUsers(combined);
+}, [searchUsers, chatUsers, debounce]);
 
   useEffect(() => {
     const handleGroupCreated = (group) => {
@@ -312,21 +323,46 @@ useEffect(() => {
 
   return (
     <div className="h-full flex flex-col bg-white">
+
+
+      <div className="flex items-center gap-3 px-4 py-3 border-b bg-gray-50">
+        
+        <div className="w-10 h-10 rounded-full overflow-hidden bg-orange-400 flex items-center justify-center text-white font-semibold">
+          {user?.avatar?.url ? (
+            <img
+              src={user.avatar.url}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            user?.fullname?.charAt(0).toUpperCase()
+          )}
+        </div>
+
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-800">
+            {user?.fullname || "User"}
+          </span>
+        </div>
+      </div>
       <h1 className="p-4 text-lg font-semibold border-b">My Chats</h1>
 
+      {/* Group Button */}
       <Groupchat
         setFilteredUsers={setFilteredUsers}
         setChatUsers={setChatUsers}
       />
+
+      {/* Chat List */}
       <Leftuser
-      setsearch={setsearch}
-setdebounce={setdebounce}
+        setsearch={setsearch}
+        setdebounce={setdebounce}
         filteredUsers={filteredUsers}
         setFilteredUsers={setFilteredUsers}
         setChatUsers={setChatUsers}
         loading={loading}
         error={error}
       />
+
     </div>
   );
 }

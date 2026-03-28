@@ -1,4 +1,5 @@
 import { Bell, SearchIcon, User } from 'lucide-react';
+import LogoutButton from '../authentication/logout';
 
 function Search({ setsearch }) {
   return (
@@ -18,6 +19,7 @@ function Search({ setsearch }) {
 
       <div className="w-4/6 text-center">
         <h1 className="text-xl font-bold text-black">Talk-A-Tive</h1>
+        <LogoutButton />
       </div>
 
     <div className="w-1/6 flex items-center justify-end gap-4">

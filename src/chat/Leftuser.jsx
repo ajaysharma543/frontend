@@ -125,6 +125,8 @@ function Leftuser({
   return (
     <div className="flex-1 overflow-y-auto">
       {filteredUsers.map((item) => {
+        const isActive =
+  selectedchat?._id === (item.isGroup ? item._id : item.chatId);
         const latest = item.lastMessage;
         let messageText = '';
         let messageColor = 'text-gray-400 italic';
@@ -169,9 +171,12 @@ function Leftuser({
           <div
             key={item._id}
             onClick={() => accesschat(item)}
-            className="flex items-center gap-3 px-4 py-3 m-2 rounded-2xl bg-gray-200 cursor-pointer hover:bg-gray-300 transition"
-          >
-            <div className="relative flex-shrink-0">
+className={`flex items-center gap-3 px-4 py-3 m-2 rounded-2xl cursor-pointer transition
+  ${
+    isActive
+      ? "bg-orange-100 border border-orange-400 shadow-sm"
+      : "bg-gray-200 hover:bg-gray-300"
+  }`} >            <div className="relative flex-shrink-0">
               {item.isGroup ? (
                 <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
                   {item.chatName?.charAt(0).toUpperCase()}

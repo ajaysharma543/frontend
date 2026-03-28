@@ -3,14 +3,14 @@ import { SearchIcon, X } from 'lucide-react';
 import Chatapi from '../api/chat.api';
 import { useAuth } from '../context/context';
 
-function Groupchat({ setChatUsers, setFilteredUsers }) {
+function Groupchat({ setChatUsers }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [name, setname] = useState('');
-  const { allUsers, setselectedchat } = useAuth();
+  const {  searchUsers,setselectedchat,fetchUsers,user } = useAuth();
   useEffect(() => {
     if (search.trim() === '') {
       setDebouncedSearch('');
@@ -28,12 +28,16 @@ function Groupchat({ setChatUsers, setFilteredUsers }) {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const filteredUser =
-    debouncedSearch.trim() === ''
-      ? []
-      : allUsers.filter((u) =>
-          u.fullname?.toLowerCase().includes(debouncedSearch.toLowerCase())
-        );
+  useEffect(() => {
+  if (!debouncedSearch.trim()) return;
+
+  fetchUsers(debouncedSearch);
+}, [debouncedSearch]);
+
+const filteredUser =
+  debouncedSearch.trim() === ''
+    ? []
+    : searchUsers.filter((u) => u._id !== user?._id);
 
   const toggleUser = (user) => {
     const exists = selectedUsers.some((u) => u._id === user._id);
