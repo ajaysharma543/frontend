@@ -33,7 +33,7 @@ function LogoutButton() {
       <button
         type="button"
         onClick={handleLogout}
-        className={`px-6 py-2  cursor-pointer rounded-2xl backdrop-blur-md bg-red-500/20 text-red-400 font-semibold border border-red-500/30 hover:bg-red-500/40 hover:text-white hover:border-red-500 transition-all duration-300 ${
+        className={` ${
           loading ? 'opacity-50 cursor-not-allowed' : ''
         }`}
         disabled={loading}

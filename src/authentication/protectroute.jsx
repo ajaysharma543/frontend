@@ -29,7 +29,7 @@ function AuthRedirect({ children }) {
     );
 
   // If logged in → go dashboard
-  if (isAuth) return <Navigate to="/dashboard" replace />;
+  if (isAuth) return <Navigate to="/" replace />;
 
   return children;
 }

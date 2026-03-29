@@ -31,7 +31,7 @@ function Signup() {
 
 setUser(response.data.data.user);
 
-      navigate('/dashboard', { replace: true });
+      navigate('/', { replace: true });
       toast.success('Registration successful 🎉', { duration: 3000 });
     } catch (error) {
       const message = error.response?.data?.message || error.message;

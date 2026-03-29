@@ -9,6 +9,9 @@ const authapi = {
  getsearchuser: (search = "") =>
 axiosclient.get("/users/getallusers", {
   params: { search }
-})};
+}),
+  updateprofile: (data) => axiosclient.patch("/users/update-profile", data),
+  updateaccountdetails: (data) => axiosclient.patch("/users/change-avatar", data),
+};
 
 export default authapi;

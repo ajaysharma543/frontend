@@ -25,7 +25,7 @@ function Login() {
 
   console.log(current.data.data.user);
 
-  navigate('/dashboard');
+  navigate('/');
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
@@ -121,7 +121,7 @@ function Login() {
           <p className="text-center text-sm text-gray-200">
             Don’t have an account?{' '}
             <Link
-              to="/"
+              to="/signup"
               className="text-orange-300 hover:text-orange-400 font-medium"
             >
               Sign up

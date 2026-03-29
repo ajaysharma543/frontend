@@ -74,6 +74,9 @@ const filteredUser =
       };
 
       setChatUsers((prev) => {
+         const exists = prev.some((chat) => chat._id === newItem._id);
+
+  if (exists) return prev; 
         const updated = [newItem, ...prev];
 
         return updated.sort((a, b) => {

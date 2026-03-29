@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import authapi from '../api/user.api';
 import socket from '../socket/socket.io';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
@@ -17,7 +18,7 @@ const [searchUsers, setSearchUsers] = useState([]);
  const [chat, setchat] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [lastSeenMap, setLastSeenMap] = useState({});
-
+  const navigate = useNavigate()
 
 const getUser = async () => {
   try {
@@ -44,6 +45,12 @@ const getUser = async () => {
     getUser();
   }, []);
 
+useEffect(() => {
+  if (!loading && user === null) {
+    navigate('/login', { replace: true });
+  }
+}, [user, loading]);
+
   const getAllUsers = async () => {
   try {
     const res = await authapi.getsearchuser("");
@@ -66,11 +73,19 @@ setSearchUsers(res.data.data.users);
   }
 };
 
+useEffect(() => {
+  socket.on("all_online_users", (users) => {
+    const updated = new Set(users.map(id => id.toString()));
+    setOnlineUsers(updated);
+  });
+
+  return () => socket.off("all_online_users");
+}, []);
   useEffect(() => {
     socket.on('user_online', (userId) => {
       setOnlineUsers((prev) => {
         const updated = new Set(prev);
-        updated.add(userId);
+        updated.add(userId);        
         return updated;
       });
     });
@@ -167,7 +182,7 @@ setSearchUsers(res.data.data.users);
   loading, 
 }}
     >
-{loading ? <div>Loading...</div> : children}
+{loading ? <div></div> : children}
     </AuthContext.Provider>
   );
 };
