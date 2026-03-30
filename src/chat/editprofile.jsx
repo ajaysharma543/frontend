@@ -3,11 +3,13 @@ import { useAuth } from '../context/context';
 import authapi from '../api/user.api';
 import { useNavigate } from 'react-router-dom';
 import AvatarOptions from './avatarcomponent';
+import { User } from 'lucide-react';
 
 function Editprofile() {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
 const [showOptions, setShowOptions] = useState(false);
+const [removeoptions, setremoveoptions] = useState(false);
   const [form, setForm] = useState({
     fullname: user?.fullname || '',
     username: user?.username || '',
@@ -22,8 +24,13 @@ const fileRef = useRef();
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
 const handleCloseOptions = () => {
   setShowOptions(false);
+};
+
+const handleCloseOption = () => {
+  setremoveoptions(false);
 };
 
 const changeimage = async (file) => {
@@ -47,10 +54,30 @@ const changeimage = async (file) => {
 
     const res = await authapi.updateaccountdetails(formData);
 
-    setUser(res.data.data);
+    setUser(res.data.data.user);
 
   } catch (err) {
     console.log(err);
+  }
+};
+
+const handleRemoveAvatar = async () => {
+  try {
+    setLoading(true);
+
+    const res = await authapi.removeavatar();
+    setUser(res.data.data.user);
+    localStorage.setItem(
+      "user",
+      JSON.stringify(res.data.data.user)
+    );
+    setremoveoptions(false);
+    setShowOptions(false);
+
+  } catch (err) {
+    console.log(err);
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -59,7 +86,6 @@ const changeimage = async (file) => {
  <div className="min-h-screen flex justify-center items-center px-4 py-8">
   <div className="w-full max-w-xl bg-white rounded-2xl p-6 space-y-6">
 
-    {/* Header */}
     <div className="flex items-center justify-between">
       <button
         onClick={() => navigate(-1)}
@@ -83,7 +109,7 @@ const changeimage = async (file) => {
               className="w-full h-full object-cover"
             />
           ) : (
-            user?.fullname?.charAt(0).toUpperCase()
+  <User className="w-8 h-8 text-white" />
           )}
         </div>
 
@@ -138,10 +164,35 @@ const changeimage = async (file) => {
   📷 Upload Photo
 </button>
 
-      <button className="w-full py-3 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition">
+      <button onClick={() => setremoveoptions(true)}
+       className="w-full py-3 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition">
         ❌ Remove Photo
       </button>
+{removeoptions &&
+ (
+  <div className="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center">
 
+    <div
+      className="bg-white w-[90%] max-w-sm rounded-2xl p-5 space-y-4 shadow-xl animate-scaleIn"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h1>do you really want to remove you profile image</h1>
+      <button
+  onClick={handleRemoveAvatar}
+  className="w-full py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+>
+  {loading ? "Removing..." : "Remove Photo"}
+</button>
+      <button
+        onClick={handleCloseOption}
+        className="w-full py-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+      >
+        Cancel
+      </button>
+
+    </div>
+  </div>
+ ) }
       <button
         onClick={handleCloseOptions}
         className="w-full py-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition"

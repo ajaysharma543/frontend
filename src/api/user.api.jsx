@@ -12,6 +12,7 @@ axiosclient.get("/users/getallusers", {
 }),
   updateprofile: (data) => axiosclient.patch("/users/update-profile", data),
   updateaccountdetails: (data) => axiosclient.patch("/users/change-avatar", data),
+removeavatar: () => axiosclient.patch("/users/remove-avatar"),
 };
 
 export default authapi;
