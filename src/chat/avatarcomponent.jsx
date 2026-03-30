@@ -1,14 +1,40 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import authapi from "../api/user.api";
 import { useAuth } from "../context/context";
 import { useNavigate } from "react-router-dom";
 
-function AvatarOptions({loading,setLoading, form,handleChange}) {
-const {setUser} = useAuth();
+function AvatarOptions({loading,setLoading}) {
+const {setUser,user} = useAuth();
+
+const [form, setForm] = useState({
+    fullname: user?.fullname || '',
+    username: user?.username || '',
+    email: user?.email || '',
+    password: '',
+    bio: user?.bio || '',
+    gender: user?.gender || '',
+  });
+  useEffect(() => {
+  if (user) {
+    setForm({
+      fullname: user.fullname || '',
+      username: user.username || '',
+      email: user.email || '',
+      password: '',
+      bio: user.bio || '',
+      gender: user.gender || '',
+    });
+  }
+}, [user]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
 const navigate = useNavigate();
 const handleSubmit = async (e) => {
   e.preventDefault();
-
+  
   try {
     setLoading(true);
 
@@ -23,10 +49,15 @@ const handleSubmit = async (e) => {
       filteredData.gender = form.gender === "" ? null : form.gender;
     }
 
-    const res = await authapi.updateprofile(filteredData);
+    const res = await authapi.updateaccountdetails(filteredData);
 
-    setUser(res.data.data);
+const updatedUser = res?.data?.data?.user;
+
+if (updatedUser) {
+  setUser(updatedUser);
+  localStorage.setItem("user", JSON.stringify(updatedUser));
     navigate("/");
+}  
   } catch (err) {
     
     console.log(err);

@@ -10,8 +10,8 @@ const authapi = {
 axiosclient.get("/users/getallusers", {
   params: { search }
 }),
-  updateprofile: (data) => axiosclient.patch("/users/update-profile", data),
-  updateaccountdetails: (data) => axiosclient.patch("/users/change-avatar", data),
+  updateaccountdetails: (data) => axiosclient.patch("/users/update-profile", data),
+   updateprofile: (data) => axiosclient.patch("/users/change-avatar", data),
 removeavatar: () => axiosclient.patch("/users/remove-avatar"),
 };
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/context';
 import authapi from '../api/user.api';
 import { useNavigate } from 'react-router-dom';
@@ -10,20 +10,15 @@ function Editprofile() {
   const navigate = useNavigate();
 const [showOptions, setShowOptions] = useState(false);
 const [removeoptions, setremoveoptions] = useState(false);
-  const [form, setForm] = useState({
-    fullname: user?.fullname || '',
-    username: user?.username || '',
-    email: user?.email || '',
-    password: '',
-    bio: user?.bio || '',
-    gender: user?.gender || '',
-  });
+
 const fileRef = useRef();
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  
+
+if (!user) {
+  return <div className="text-center mt-10">Loading...</div>;
+}
 
 const handleCloseOptions = () => {
   setShowOptions(false);
@@ -39,23 +34,34 @@ const changeimage = async (file) => {
   try {
     const previewUrl = URL.createObjectURL(file);
 
-    setUser((prev) => ({
-      ...prev,
-      avatar: {
-        ...prev.avatar,
-        url: previewUrl,
-      },
-    }));
+ setUser((prev) => {
+  if (!prev) return prev;
 
+  return {
+    ...prev,
+    avatar: {
+      ...prev.avatar,
+      url: previewUrl,
+    },
+  };
+});
     setShowOptions(false);
 
     const formData = new FormData();
     formData.append("avatar", file);
 
-    const res = await authapi.updateaccountdetails(formData);
+    const res = await authapi.updateprofile(formData);
+    console.log("API RESPONSE:", res.data);
 
-    setUser(res.data.data.user);
-
+const updatedUser = res?.data?.data?.user;
+if (!updatedUser) {
+  console.log("Invalid response", res);
+  return;
+}
+if (updatedUser) {
+  setUser(updatedUser);
+  localStorage.setItem("user", JSON.stringify(updatedUser));
+}
   } catch (err) {
     console.log(err);
   }
@@ -114,8 +120,7 @@ const handleRemoveAvatar = async () => {
         </div>
 
         <div className='flex flex-col'>
-         <h1>{user.fullname}</h1>
-         <h1>{user.username}</h1>
+        
         </div>
       </div>
 
@@ -136,13 +141,11 @@ const handleRemoveAvatar = async () => {
       
       <div className="flex justify-center">
         <div className="w-20 h-20 rounded-full overflow-hidden bg-orange-400 flex items-center justify-center text-white text-xl">
-          {user?.avatar?.url ? (
+          {user?.avatar?.url && (
             <img
               src={user.avatar.url}
               className="w-full h-full object-cover"
             />
-          ) : (
-            user?.fullname?.charAt(0).toUpperCase()
           )}
         </div>
       </div>
@@ -204,8 +207,6 @@ const handleRemoveAvatar = async () => {
   </div>
 )}
    <AvatarOptions
-   form={form}
-   handleChange={handleChange}
    loading={loading}
    setLoading={setLoading}
     />

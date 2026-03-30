@@ -24,14 +24,15 @@ const getUser = async () => {
   try {
     const res = await authapi.getcurrentuser();
 
-    if (res?.data?.data) {
-      setUser(res.data.data.user);
+  const updatedUser = res?.data?.data?.user;
 
-      localStorage.setItem("user", JSON.stringify(res.data.data.user));
-    } else {
-      setUser(null);
-      localStorage.removeItem("user");
-    }
+if (updatedUser) {
+  setUser(updatedUser);
+  localStorage.setItem("user", JSON.stringify(updatedUser));
+} else {
+  setUser(null);
+  localStorage.removeItem("user");
+}
   } catch (err) {
     console.log(err);
     setUser(null);
