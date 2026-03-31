@@ -8,12 +8,10 @@ import { useRef } from 'react';
 import { SearchIcon } from 'lucide-react';
 
 function Leftchat({ search,setsearch }) {
-  const [chatUsers, setChatUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [debounce, setdebounce] = useState('');
-  const { user, allUsers,searchUsers, selectedchat,fetchUsers } = useAuth();
+  const { user, allUsers,filteredUsers,setFilteredUsers,searchUsers, selectedchat,fetchUsers,setChatUsers,chatUsers } = useAuth();
   const handlerRef = useRef();
   const selectedChatRef = useRef(selectedchat);
   const userRef = useRef(user);
@@ -192,7 +190,7 @@ if (!userRef.current?._id){
 
  useEffect(() => {
   const listener = (msg) => {
-      // console.log("🔥 SOCKET MESSAGE RECEIVED:", msg);
+      // console.log(" SOCKET MESSAGE RECEIVED:", msg);
     if (handlerRef.current) {
       handlerRef.current(msg);
     }
@@ -349,7 +347,6 @@ useEffect(() => {
       {/* Group Button */}
       <Groupchat
         setFilteredUsers={setFilteredUsers}
-        setChatUsers={setChatUsers}
       />
 
       {/* Chat List */}
@@ -358,7 +355,6 @@ useEffect(() => {
         setdebounce={setdebounce}
         filteredUsers={filteredUsers}
         setFilteredUsers={setFilteredUsers}
-        setChatUsers={setChatUsers}
         loading={loading}
         error={error}
       />

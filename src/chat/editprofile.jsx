@@ -51,7 +51,7 @@ const changeimage = async (file) => {
     formData.append("avatar", file);
 
     const res = await authapi.updateprofile(formData);
-    console.log("API RESPONSE:", res.data);
+    // console.log("API RESPONSE:", res.data);
 
 const updatedUser = res?.data?.data?.user;
 if (!updatedUser) {

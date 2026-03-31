@@ -12,12 +12,19 @@ export const AuthProvider = ({ children }) => {
   const storedUser = localStorage.getItem("user");
   return storedUser ? JSON.parse(storedUser) : null;
   });
+    const [chatUsers, setChatUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+const [onlineLoaded, setOnlineLoaded] = useState(false);
   const [selectedchat, setselectedchat] = useState(); 
   const [allUsers, setAllUsers] = useState([]);
 const [searchUsers, setSearchUsers] = useState([]); 
  const [chat, setchat] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [lastSeenMap, setLastSeenMap] = useState({});
+// const [notifications, setNotifications] = useState(() => {
+//   const stored = localStorage.getItem("notifications");
+//   return stored ? JSON.parse(stored) : [];
+// });
   const navigate = useNavigate()
 
 const getUser = async () => {
@@ -75,34 +82,50 @@ setSearchUsers(res.data.data.users);
 };
 
 useEffect(() => {
-  socket.on("all_online_users", (users) => {
-    const updated = new Set(users.map(id => id.toString()));
-    setOnlineUsers(updated);
+  socket.on("connect", () => {
+    if (user?._id) {
+      socket.emit("join_user", user._id);
+      socket.emit("get_online_users");
+    }
   });
+
+  return () => socket.off("connect");
+}, [user]);
+
+useEffect(() => {
+socket.on("all_online_users", (users) => {
+  const updated = new Set(users.map(id => id.toString()));
+  setOnlineUsers(updated);
+  setOnlineLoaded(true); // 🔥 important
+});
 
   return () => socket.off("all_online_users");
 }, []);
   useEffect(() => {
-    socket.on('user_online', (userId) => {
-      setOnlineUsers((prev) => {
-        const updated = new Set(prev);
-        updated.add(userId);        
-        return updated;
-      });
-    });
+   socket.on('user_online', (userId) => {
+  const id = userId.toString();
 
-    socket.on('user_offline', ({ userId, lastSeen }) => {
-      setOnlineUsers((prev) => {
-        const updated = new Set(prev);
-        updated.delete(userId);
-        return updated;
-      });
+  setOnlineUsers((prev) => {
+    const updated = new Set(prev);
+    updated.add(id);
+    return updated;
+  });
+});
 
-      setLastSeenMap((prev) => ({
-        ...prev,
-        [userId]: lastSeen,
-      }));
-    });
+socket.on('user_offline', ({ userId, lastSeen }) => {
+  const id = userId.toString();
+
+  setOnlineUsers((prev) => {
+    const updated = new Set(prev);
+    updated.delete(id);
+    return updated;
+  });
+
+  setLastSeenMap((prev) => ({
+    ...prev,
+    [id]: lastSeen,
+  }));
+});
 
     return () => {
       socket.off('user_online');
@@ -110,11 +133,6 @@ useEffect(() => {
     };
   }, []);
 
-  useEffect(() => {
-    if (user?._id) {
-      socket.emit('join_user', user._id);
-    }
-  }, [user]);
 
   useEffect(() => {
     if (!user?._id) return;
@@ -143,7 +161,6 @@ useEffect(() => {
     const resetTimer = () => {
       clearTimeout(timeout);
 
-      socket.emit('join_user', user._id);
 
       timeout = setTimeout(
         () => {
@@ -175,9 +192,16 @@ useEffect(() => {
   chat,
   setchat,
   fetchUsers,
+  // notifications,
+  // setNotifications,
+  chatUsers,
+  setChatUsers,
    searchUsers,
   selectedchat,
   setselectedchat,
+  setFilteredUsers,
+  filteredUsers,
+  onlineLoaded ,
   onlineUsers,
   lastSeenMap,
   loading, 

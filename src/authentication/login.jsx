@@ -23,7 +23,7 @@ function Login() {
 
   setUser(current.data.data.user);
 
-  console.log(current.data.data.user);
+  // console.log(current.data.data.user);
 
   navigate('/');
     } catch (error) {

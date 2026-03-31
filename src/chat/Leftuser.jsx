@@ -6,15 +6,13 @@ import socket from '../socket/socket.io';
 import Messageapi from '../api/message.api';
 
 function Leftuser({
-  setFilteredUsers,
-  filteredUsers,
+ 
   setsearch,
   setdebounce,
-  setChatUsers,
   loading,
   error,
 }) {
-  const { setselectedchat, selectedchat, onlineUsers, user } = useAuth();
+  const { setselectedchat, setFilteredUsers,filteredUsers,setChatUsers, selectedchat, onlineUsers, user } = useAuth();
 
   const accesschat = async (item) => {
     try {
@@ -37,7 +35,6 @@ function Leftuser({
       } else {
         chat = item;
       }
-      console.log("clicked chat",chat);
       
       setselectedchat(chat);
       setsearch("")
@@ -67,7 +64,7 @@ function Leftuser({
           });
         }
 
-        return [
+       return [
           {
             ...newItem,
             unreadCount: 0,
@@ -169,7 +166,7 @@ function Leftuser({
         }
         return (
           <div
-            key={item._id}
+          key={item.isGroup ? item._id : item.chatId}
             onClick={() => accesschat(item)}
 className={`flex items-center gap-3 px-4 py-3 m-2 rounded-2xl cursor-pointer transition
   ${

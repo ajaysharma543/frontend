@@ -27,17 +27,18 @@ function Rightchat() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!selectedchat?._id) return;
+ useEffect(() => {
+  if (!selectedchat?._id) return;
 
-    socket.emit('join_chat', selectedchat._id);
-  }, [selectedchat?._id]);
+  socket.emit('join_chat', selectedchat._id);
 
-  useEffect(() => {
-    setTimeout(() => {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
-  }, [messages, isTyping]);
+  return () => {
+    socket.emit('leave_chat', selectedchat._id);
+  };
+}, [selectedchat?._id]);
+useEffect(() => {
+  bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+}, [messages, isTyping]);
 
   useEffect(() => {
     if (!selectedchat?._id) return;
@@ -112,6 +113,11 @@ function Rightchat() {
     return () => socket.off('messages_read', handleRead);
   }, [selectedchat]);
 
+useEffect(() => {
+  if (selectedchat?._id && user?._id) {
+    socket.emit("get_online_users"); // 🔥 KEY FIX
+  }
+}, [selectedchat?._id, user?._id]);
   useEffect(() => {
     if (!selectedchat?._id) return;
 
@@ -123,14 +129,13 @@ function Rightchat() {
         setmessges([]);
 
         const response = await Messageapi.getmessage(selectedchat._id);
+        if (!isMounted) return;
 
         setmessges(response.data.data.messages);
         Messageapi.markasread(selectedchat._id);
         setLoadingMessages(false);
 
-        if (!isMounted) return;
 
-        setmessges(response.data.data.messages);
       } catch (error) {
         console.log(error);
       }

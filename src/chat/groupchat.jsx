@@ -3,14 +3,14 @@ import { SearchIcon, X } from 'lucide-react';
 import Chatapi from '../api/chat.api';
 import { useAuth } from '../context/context';
 
-function Groupchat({ setChatUsers }) {
+function Groupchat() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [name, setname] = useState('');
-  const {  searchUsers,setselectedchat,fetchUsers,user } = useAuth();
+  const {  searchUsers,setselectedchat,fetchUsers,user,setChatUsers } = useAuth();
   useEffect(() => {
     if (search.trim() === '') {
       setDebouncedSearch('');

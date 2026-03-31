@@ -1,16 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../context/context';
 import { Info, PhoneCall, VideoIcon } from 'lucide-react';
 import { UseTimeAgo } from '../context/gettimeago';
 import LogoutButton from '../authentication/logout';
+import socket from '../socket/socket.io';
 
 function Rightheader() {
-  const { user, selectedchat, onlineUsers, lastSeenMap } = useAuth();
+  const { user, selectedchat, onlineUsers, lastSeenMap ,onlineLoaded } = useAuth();
   const otheruser = selectedchat?.members?.find(
     (item) => item?._id !== user?._id
   );
   const lastSeenTime = lastSeenMap[otheruser?._id];
   const timeAgo = UseTimeAgo(lastSeenTime);
+  // console.log(onlineUsers);
+  // console.log(onlineUsers.has(otheruser?._id?.toString()));
+  useEffect(() => {
+  socket.emit("get_online_users");
+}, []);
 
   return (
     <div className="flex items-center justify-between px-5 py-3 border-b">
@@ -32,14 +38,16 @@ function Rightheader() {
               ? selectedchat?.chatName
               : otheruser?.fullname}
           </h2>
-          <p className="text-sm text-gray-500">
-            {!selectedchat.isGroup &&
-              (onlineUsers.has(otheruser?._id)
-                ? 'Online'
-                : lastSeenTime
-                  ? `Last seen ${timeAgo}`
-                  : 'Offline')}
-          </p>
+     <p className="text-sm text-gray-500">
+  {!selectedchat.isGroup &&
+    (!onlineLoaded
+      ? 'Checking...'
+      : onlineUsers.has(otheruser?._id?.toString())
+        ? 'Online'
+        : lastSeenTime
+          ? `Last seen ${timeAgo}`
+          : 'Offline')}
+</p>
         </div>
       </div>
 

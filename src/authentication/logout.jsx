@@ -16,7 +16,7 @@ function LogoutButton() {
       await authapi.logout();
         localStorage.removeItem("user");
   setUser(null);
-      console.log('✅ User logged out successfully');
+      // console.log('✅ User logged out successfully');
       navigate('/login');
     } catch (err) {
       console.error('❌ Error logging out:', err.response?.data || err.message);
