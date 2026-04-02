@@ -64,6 +64,8 @@ const filteredUser =
         members: selectedUsers.map((u) => u._id),
       });
       const newGroup = res.data.data;
+      // console.log(newGroup);
+      
 
       const newItem = {
         _id: newGroup._id,
@@ -71,6 +73,7 @@ const filteredUser =
         chatName: newGroup.chatName,
         members: newGroup.members,
         lastMessage: null,
+        groupAdmin : newGroup.groupAdmin,
       };
 
       setChatUsers((prev) => {

@@ -3,11 +3,12 @@ import LogoutButton from '../authentication/logout';
 import Profile from './profile';
 import { useState } from 'react';
 import Notifications from './notifications';
+import { useAuth } from '../context/context';
 
 function Search({ setsearch }) {
   const [showProfile, setShowProfile] = useState(false);
   // console.log(notifications);
-  
+  const {user} = useAuth();
   return (
     <div className="w-full flex items-center bg-white px-6 py-2 border-b">
       <div className="w-1/6 flex justify-center">
@@ -32,10 +33,17 @@ function Search({ setsearch }) {
     <Notifications />
     <button onClick={() => setShowProfile(true)} className="text-sm font-medium text-gray-700 hidden md:block">
   <div className="flex items-center gap-2 bg-white px-2 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer">
-    <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
-      <User />
-    </div>
-      Profile
+<div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 flex items-center justify-center">
+  {user?.avatar?.url ? (
+    <img
+      src={user.avatar.url}
+      alt="profile"
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <User className="w-5 h-5 text-gray-600" />
+  )}
+</div>
   </div>
       </button>
 {showProfile && (

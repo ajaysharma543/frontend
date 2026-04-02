@@ -69,7 +69,7 @@ function Displaymessage({ messages }) {
               )}
 
               <div
-                className={`relative group px-2 py-0.5 rounded-2xl max-w-[65%] break-words ${
+                className={`relative group  rounded-2xl max-w-[65%] break-words ${
                   isMyMessage
                     ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
                     : 'bg-gray-700 text-white'
@@ -86,7 +86,6 @@ function Displaymessage({ messages }) {
                <div className="px-3 py-2">
   {msg.content}
 
-  {/* ✅ STATUS */}
   {isMyMessage && (
     <div className="text-[10px] text-right mt-1 opacity-70">
       {msg.status === "sending" && "Sending..."}

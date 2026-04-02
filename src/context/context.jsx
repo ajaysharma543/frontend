@@ -93,6 +93,61 @@ useEffect(() => {
 }, [user]);
 
 useEffect(() => {
+  socket.on("group_renamed", (updatedChat) => {
+    setselectedchat((prev) =>
+      prev?._id === updatedChat._id ? updatedChat : prev
+    );
+    setChatUsers((prev) =>
+      prev.map((chat) =>
+        chat._id === updatedChat._id ? updatedChat : chat
+      )
+    );
+  });
+
+  return () => socket.off("group_renamed");
+}, []);
+
+useEffect(() => {
+  socket.on("kicked_from_group", ({ chatId, userId }) => {
+    setselectedchat((prev) => {
+      if (!prev || prev._id !== chatId) return prev;
+
+      return {
+        ...prev,
+        members: prev.members.filter(
+          (member) => member._id !== userId
+        ),
+      };
+    });
+  });
+
+  socket.on("removed_from_group", ({ chatId }) => {
+    setselectedchat(null);
+
+    setChatUsers((prev) =>
+      prev.filter((chat) => chat._id !== chatId)
+    );
+  });
+
+  return () => {
+    socket.off("kicked_from_group");
+    socket.off("removed_from_group");
+  };
+}, []);
+
+
+useEffect(() => {
+  socket.on("added_to_group", (chat) => {
+setChatUsers((prev) => {
+  const exists = prev.find(c => c._id === chat._id);
+  if (exists) return prev;
+  return [...prev, chat];
+});});
+
+  return () => socket.off("added_to_group");
+}, []);
+
+useEffect(() => {
 socket.on("all_online_users", (users) => {
   const updated = new Set(users.map(id => id.toString()));
   setOnlineUsers(updated);
@@ -111,6 +166,7 @@ socket.on("all_online_users", (users) => {
     return updated;
   });
 });
+
 
 socket.on('user_offline', ({ userId, lastSeen }) => {
   const id = userId.toString();

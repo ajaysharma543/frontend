@@ -24,13 +24,14 @@ function Leftuser({
       if (!item.isGroup || isFromSearch) {
         const res = await Chatapi.accesschat(item._id);
         chat = res.data.data;
-
+        
         newItem = {
           ...item,
           isGroup: false,
           chatId: chat._id,
           lastMessage: chat.lastMessage || null,
           unreadCount: 0,
+          groupAdmin : chat.groupAdmin,
         };
       } else {
         chat = item;

@@ -43,6 +43,7 @@ function Leftchat({ search,setsearch }) {
               chatName: c.chatName,
               avatar: c.avatar,
               members: c.members,
+              groupAdmin : c.groupAdmin,
               lastMessage: lastMsg,
               unreadCount: c.unreadCount || 0,
             });
@@ -297,6 +298,7 @@ useEffect(() => {
         chatName: group.chatName,
         members: group.members,
         lastMessage: null,
+        groupAdmin : group.groupAdmin,
       };
 
       setChatUsers((prev) => {
@@ -322,26 +324,6 @@ useEffect(() => {
   return (
     <div className="h-full flex flex-col bg-white">
 
-
-      <div className="flex items-center gap-3 px-4 py-3 border-b bg-gray-50">
-        
-        <div className="w-10 h-10 rounded-full overflow-hidden bg-orange-400 flex items-center justify-center text-white font-semibold">
-          {user?.avatar?.url ? (
-            <img
-              src={user.avatar.url}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            user?.fullname?.charAt(0).toUpperCase()
-          )}
-        </div>
-
-        <div className="flex flex-col">
-          <span className="font-medium text-gray-800">
-            {user?.fullname || "User"}
-          </span>
-        </div>
-      </div>
       <h1 className="p-4 text-lg font-semibold border-b">My Chats</h1>
 
       {/* Group Button */}

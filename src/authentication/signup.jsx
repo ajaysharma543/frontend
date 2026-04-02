@@ -6,6 +6,7 @@ import authapi from '../api/user.api';
 import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/context';
+import socket from '../socket/socket.io';
 function Signup() {
   const [fileName, setFileName] = useState('No file chosen');
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ function Signup() {
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
 
 setUser(response.data.data.user);
-
+socket.emit("join_user", response.data.data.user._id);
       navigate('/', { replace: true });
       toast.success('Registration successful 🎉', { duration: 3000 });
     } catch (error) {
