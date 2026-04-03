@@ -10,7 +10,7 @@ function Groupchat() {
   const [loading, setLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [name, setname] = useState('');
-  const {  searchUsers,setselectedchat,fetchUsers,user,setChatUsers } = useAuth();
+  const {  searchUsers,setselectedchat,selectedchat,fetchUsers,user,setChatUsers } = useAuth();
   useEffect(() => {
     if (search.trim() === '') {
       setDebouncedSearch('');
@@ -49,55 +49,77 @@ const filteredUser =
     }
   };
 
-  const creategroup = async () => {
-    try {
-      if (!name.trim()) {
-        alert('Enter group name');
-        return;
-      }
-      if (selectedUsers.length === 0) {
-        alert('Select at least two user');
-        return;
-      }
-      const res = await Chatapi.creategroupchat({
-        name,
-        members: selectedUsers.map((u) => u._id),
-      });
-      const newGroup = res.data.data;
-      // console.log(newGroup);
-      
+const creategroup = async () => {
+  let tempId = "temp-" + Date.now();
+  let previousChats;
 
-      const newItem = {
-        _id: newGroup._id,
-        isGroup: true,
-        chatName: newGroup.chatName,
-        members: newGroup.members,
-        lastMessage: null,
-        groupAdmin : newGroup.groupAdmin,
-      };
-
-      setChatUsers((prev) => {
-         const exists = prev.some((chat) => chat._id === newItem._id);
-
-  if (exists) return prev; 
-        const updated = [newItem, ...prev];
-
-        return updated.sort((a, b) => {
-          const timeA = new Date(a.lastMessage?.createdAt || 0).getTime();
-          const timeB = new Date(b.lastMessage?.createdAt || 0).getTime();
-          return timeB - timeA;
-        });
-      });
-
-      setselectedchat(newItem);
-      setOpen(false);
-      setSelectedUsers([]);
-      setname('');
-      setSearch('');
-    } catch (error) {
-      console.log(error);
+  try {
+    if (!name.trim()) {
+      alert("Enter group name");
+      return;
     }
-  };
+
+    if (selectedUsers.length === 0) {
+      alert("Select at least two user");
+      return;
+    }
+
+    previousChats = selectedchat;
+
+    const tempGroup = {
+      _id: tempId,
+      isGroup: true,
+      chatName: name,
+      members: [...selectedUsers, user],
+      lastMessage: null,
+      groupAdmin: user,
+      isTemp: true,
+    };
+
+    setChatUsers((prev) => [tempGroup, ...prev]);
+    setselectedchat(tempGroup);
+
+    setOpen(false);
+    setSelectedUsers([]);
+    setname("");
+    setSearch("");
+
+    const res = await Chatapi.creategroupchat({
+      name,
+      members: selectedUsers.map((u) => u._id),
+    });
+
+    const newGroup = res.data.data;
+
+    const realGroup = {
+      _id: newGroup._id,
+      isGroup: true,
+      chatName: newGroup.chatName,
+      members: newGroup.members,
+      lastMessage: null,
+      groupAdmin: newGroup.groupAdmin,
+    };
+
+    setChatUsers((prev) =>
+      prev.map((chat) =>
+        chat._id === tempId ? realGroup : chat
+      )
+    );
+
+    setselectedchat(realGroup);
+
+  } catch (error) {
+    console.log(error);
+
+    setChatUsers((prev) =>
+      prev.filter((chat) => chat._id !== tempId)
+    );
+
+    if (previousChats) {
+      setselectedchat(previousChats);
+    }
+  }
+};
   return (
     <>
       <button

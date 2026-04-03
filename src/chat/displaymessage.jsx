@@ -46,6 +46,7 @@ function Displaymessage({ messages }) {
               })
               .filter((u) => u && u._id?.toString() !== userId)
           : [];
+          const isImageOnly = msg.image?.url && !msg.content;
 
         const isSeen =
           isLastMyMessage &&
@@ -68,13 +69,15 @@ function Displaymessage({ messages }) {
                 </div>
               )}
 
-              <div
-                className={`relative group  rounded-2xl max-w-[65%] break-words ${
-                  isMyMessage
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
-                    : 'bg-gray-700 text-white'
-                }`}
-              >
+<div
+  className={`relative group rounded-2xl max-w-[65%] break-words ${
+    isImageOnly
+      ? "p-0 bg-transparent"
+      : isMyMessage
+      ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
+      : "bg-gray-700 text-white"
+  }`}
+>
                 {msg.image?.url && (
                   <img
                     src={msg.image.url}
@@ -83,16 +86,18 @@ function Displaymessage({ messages }) {
                   />
                 )}
 
-               <div className="px-3 py-2">
-  {msg.content}
+          {msg.content && (
+  <div className="px-3 pt-2 px-3">
+    {msg.content}
+  </div>
+)}
 
-  {isMyMessage && (
-    <div className="text-[10px] text-right mt-1 opacity-70">
-      {msg.status === "sending" && "Sending..."}
-      {msg.status === "failed" && "Failed ❌"}
-    </div>
-  )}
-</div>
+{isMyMessage && (
+  <div className="text-[10px] text-right px-3 pb-2 opacity-70">
+    {msg.status === "sending" && "Sending..."}
+    {msg.status === "failed" && "Failed ❌"}
+  </div>
+)}
               </div>
               {isMyMessage && (
                 <div className="w-8 flex-shrink-0">

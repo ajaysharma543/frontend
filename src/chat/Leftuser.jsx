@@ -15,98 +15,101 @@ function Leftuser({
   const { setselectedchat, setFilteredUsers,filteredUsers,setChatUsers, selectedchat, onlineUsers, user } = useAuth();
 
   const accesschat = async (item) => {
-    try {
-      let chat;
-      let newItem = item;
+  try {
+    const isFromSearch = item.chatId === null;
 
-      const isFromSearch = item.chatId === null;
+    if (item.isGroup && !isFromSearch) {
+      setselectedchat(item);
+      setsearch("");
+      setdebounce("");
 
-      if (!item.isGroup || isFromSearch) {
-        const res = await Chatapi.accesschat(item._id);
-        chat = res.data.data;
-        
-        newItem = {
-          ...item,
-          isGroup: false,
-          chatId: chat._id,
-          lastMessage: chat.lastMessage || null,
-          unreadCount: 0,
-          groupAdmin : chat.groupAdmin,
-        };
-      } else {
-        chat = item;
-      }
-      
-      setselectedchat(chat);
-      setsearch("")
-      setdebounce("")
-      socket.emit('join_chat', chat._id);
+      socket.emit("join_chat", item._id);
 
-      await Messageapi.markasread(chat._id);
+      await Messageapi.markasread(item._id);
 
-      setChatUsers((prev) => {
-        const exists = prev.some((u) =>
-          u.isGroup ? u._id === chat._id : u.chatId === chat._id
-        );
-
-        if (exists) {
-          return prev.map((u) => {
-            if (
-              (u.isGroup && u._id === chat._id) ||
-              (!u.isGroup && u.chatId === chat._id)
-            ) {
-              return {
-                ...u,
-                lastMessage: chat.lastMessage || u.lastMessage,
-                unreadCount: 0,
-              };
-            }
-            return u;
-          });
-        }
-
-       return [
-          {
-            ...newItem,
-            unreadCount: 0,
-          },
-          ...prev,
-        ];
-      });
-
-      setFilteredUsers((prev) => {
-        const exists = prev.some((u) =>
-          u.isGroup ? u._id === chat._id : u.chatId === chat._id
-        );
-
-        if (exists) {
-          return prev.map((u) => {
-            if (
-              (u.isGroup && u._id === chat._id) ||
-              (!u.isGroup && u.chatId === chat._id)
-            ) {
-              return {
-                ...u,
-                lastMessage: chat.lastMessage || u.lastMessage,
-                unreadCount: 0,
-              };
-            }
-            return u;
-          });
-        }
-
-        return [
-          {
-            ...newItem,
-            unreadCount: 0,
-          },
-          ...prev,
-        ];
-      });
-    } catch (error) {
-      console.log(error);
+      return; 
     }
-  };
+
+    const tempChat = {
+      _id: item.chatId || "temp-" + item._id,
+      isGroup: false,
+      members: [item],
+      chatName: item.fullname,
+      avatar: item.avatar,
+      lastMessage: null,
+    };
+
+    setselectedchat(tempChat); 
+
+    setsearch("");
+    setdebounce("");
+
+    socket.emit("join_chat", tempChat._id);
+
+    const res = await Chatapi.accesschat(item._id);
+    const chat = res.data.data;
+
+    setselectedchat(chat);
+
+    socket.emit("join_chat", chat._id);
+
+    await Messageapi.markasread(chat._id);
+
+    const newItem = {
+      ...item,
+      isGroup: false,
+      chatId: chat._id,
+      lastMessage: chat.lastMessage || null,
+      unreadCount: 0,
+      groupAdmin: chat.groupAdmin,
+    };
+
+    setChatUsers((prev) => {
+      const exists = prev.some((u) =>
+        u.isGroup ? u._id === chat._id : u.chatId === chat._id
+      );
+
+      if (exists) {
+        return prev.map((u) =>
+          (u.isGroup && u._id === chat._id) ||
+          (!u.isGroup && u.chatId === chat._id)
+            ? {
+                ...u,
+                lastMessage: chat.lastMessage || u.lastMessage,
+                unreadCount: 0,
+              }
+            : u
+        );
+      }
+
+      return [{ ...newItem, unreadCount: 0 }, ...prev];
+    });
+
+    setFilteredUsers((prev) => {
+      const exists = prev.some((u) =>
+        u.isGroup ? u._id === chat._id : u.chatId === chat._id
+      );
+
+      if (exists) {
+        return prev.map((u) =>
+          (u.isGroup && u._id === chat._id) ||
+          (!u.isGroup && u.chatId === chat._id)
+            ? {
+                ...u,
+                lastMessage: chat.lastMessage || u.lastMessage,
+                unreadCount: 0,
+              }
+            : u
+        );
+      }
+
+      return [{ ...newItem, unreadCount: 0 }, ...prev];
+    });
+
+  } catch (error) {
+    console.log(error);
+  }
+};
 
   if (loading) {
     return <p className="p-4 text-gray-500">Loading...</p>;

@@ -11,61 +11,73 @@ const [searchResults, setSearchResults] = useState([]);
   const adminId =
   typeof selectedchat?.groupAdmin === "object"
     ? selectedchat.groupAdmin._id
-    : selectedchat.groupAdmin;    console.log("Admin",adminId);
+    : selectedchat.groupAdmin;
+        // console.log("Admin",adminId);
 const isAdmin =
   adminId?.toString() === user?._id?.toString();
     const isChanged = groupName !== selectedchat?.chatName;
 
-console.log("select",selectedchat);
-console.log(isAdmin);
+// console.log("select",selectedchat);
+// console.log(isAdmin);
 
 useEffect(() => {
   setGroupName(selectedchat?.chatName || "");
 }, [selectedchat?.chatName]);
 
 const renamegroup = async () => {
-  try {
-      setselectedchat((prev) => {
-  if (!prev) return prev;
-  return {
-    ...prev,
-  chat: selectedchat._id,
-      chatName: groupName,
-  };
-});
-  setShowUserInfo(false);
+  let previousChat;
 
-    const res = await Chatapi.renamegroup({
+  try {
+    previousChat = selectedchat;
+
+    setselectedchat((prev) => ({
+      ...prev,
+      chatName: groupName,
+    }));
+
+    setShowUserInfo(false);
+
+    await Chatapi.renamegroup({
       chat: selectedchat._id,
       chatName: groupName,
     });
 
-    const updatedChat = res.data.data;
-// console.log(updatedChat);
-setselectedchat(updatedChat)
-    // console.log("changed");
   } catch (error) {
     console.log(error);
+
+    // rollback
+    if (previousChat) {
+      setselectedchat(previousChat);
+    }
   }
 };
 
 const removeuserfromgroup = async (memberId) => {
+  let previousChat;
+
   try {
-   
-    const res = await Chatapi.removefromgroup({
+    previousChat = selectedchat;
+
+    setselectedchat((prev) => ({
+      ...prev,
+      members: prev.members.filter(
+        (m) => m._id.toString() !== memberId.toString()
+      ),
+    }));
+
+    await Chatapi.removefromgroup({
       chat: selectedchat._id,
-      userid: memberId
+      userid: memberId,
     });
-
-    const updatedChat = res.data.data;
-
-    setselectedchat(updatedChat);
 
   } catch (error) {
     console.log(error);
+
+    if (previousChat) {
+      setselectedchat(previousChat);
+    }
   }
 };
-
 const handleSearch = async (e) => {
   const value = e.target.value;
   setSearch(value);
@@ -79,24 +91,43 @@ const handleSearch = async (e) => {
 };
 
 const addUserToGroup = async (userId) => {
+  let previousChat;
+
   try {
-    const res = await Chatapi.addtogroup({
+    previousChat = selectedchat;
+
+    const userToAdd = searchResults.find(
+      (u) => u._id.toString() === userId.toString()
+    );
+
+    setselectedchat((prev) => ({
+      ...prev,
+      members: [...prev.members, userToAdd],
+    }));
+
+    setSearch("");
+    setSearchResults([]);
+
+    await Chatapi.addtogroup({
       chat: selectedchat._id,
       userid: userId,
     });
 
-    const updatedChat = res.data.data;
-
-    setselectedchat(updatedChat);
-    setSearch("");
-    setSearchResults([]);
-
   } catch (error) {
     console.log(error);
+
+    if (previousChat) {
+      setselectedchat(previousChat);
+    }
   }
 };
 
 useEffect(() => {
+  if (!search.trim()) {
+    setSearchResults([]);
+    return;
+  }
+
   if (!searchUsers || !selectedchat) return;
 
   const filtered = searchUsers.filter(
@@ -107,7 +138,7 @@ useEffect(() => {
   );
 
   setSearchResults(filtered);
-}, [searchUsers, selectedchat]);
+}, [searchUsers, selectedchat, search]);
 
   return (
     <div className="flex flex-col gap-5">
