@@ -32,7 +32,7 @@ function Search({ setsearch }) {
     <div className="w-1/6 flex items-center justify-end gap-4">
     <Notifications />
     <button onClick={() => setShowProfile(true)} className="text-sm font-medium text-gray-700 hidden md:block">
-  <div className="flex items-center gap-2 bg-white px-2 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer">
+  <div className="flex items-center gap-2 bg-white border-2 border-gray-200 px-2 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer">
 <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 flex items-center justify-center">
   {user?.avatar?.url ? (
     <img
