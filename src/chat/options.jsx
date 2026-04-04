@@ -3,7 +3,7 @@ import Messageapi from '../api/message.api';
 import { useState } from 'react';
 // import authapi from "../api/user.api";
 
-function Options({ isMyMessage, msg }) {
+function Options({ isMyMessage, msg, setmessges }) {
   const [activeMenu, setActiveMenu] = useState('');
 
   const menuRef = useRef(null);
@@ -23,20 +23,31 @@ function Options({ isMyMessage, msg }) {
     };
   }, [activeMenu, msg._id, setActiveMenu]);
 
-  const handleDelete = async () => {
-    try {
-      const res = await Messageapi.deletemessage(msg._id);
-      console.log(res.data.data);
+const handleDelete = async () => {
+  setmessges((prev) =>
+    prev.map((m) =>
+      m._id === msg._id ? { ...m, isDeleted: true } : m
+    )
+  );
 
-      setActiveMenu(null);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  setActiveMenu(null);
+
+  try {
+    await Messageapi.deletemessage(msg._id);
+  } catch (error) {
+    console.log(error);
+
+    setmessges((prev) =>
+      prev.map((m) =>
+        m._id === msg._id ? { ...m, isDeleted: false } : m
+      )
+    );
+  }
+};
 
   return (
     <div
-      className={`relative group rounded-2xl mb-1 px-5 py-2 max-w-[65%] break-words ${
+      className={`relative group rounded-2xl mb-0.5 px-7 py-2 max-w-[65%] break-words ${
         isImageOnly
           ? 'p-0 bg-transparent'
           : isMyMessage

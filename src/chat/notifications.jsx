@@ -47,7 +47,7 @@ function Notifications() {
       } else {
         chat = item;
       }
-
+      
       setselectedchat(chat);
 
       socket.emit('join_chat', chat._id);

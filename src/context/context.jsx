@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import authapi from '../api/user.api';
 import socket from '../socket/socket.io';
 import { useNavigate } from 'react-router-dom';
+import Messageapi from '../api/message.api';
 
 const AuthContext = createContext();
 
@@ -51,7 +52,31 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     getUser();
   }, []);
+  useEffect(() => {
+    if (!selectedchat?._id) return;
 
+    const markRead = async () => {
+      try {
+        await Messageapi.markasread(selectedchat._id);
+
+        setChatUsers((prev) =>
+          prev.map((chat) => {
+            if (
+              (chat.isGroup && chat._id === selectedchat._id) ||
+              (!chat.isGroup && chat.chatId === selectedchat._id)
+            ) {
+              return { ...chat, unreadCount: 0 };
+            }
+            return chat;
+          })
+        );
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    markRead();
+  }, [selectedchat]);
   useEffect(() => {
     if (!loading && user === null) {
       navigate('/login', { replace: true });
