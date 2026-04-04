@@ -9,34 +9,33 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
   const [inputfile, setinputfile] = useState('');
   const fileRef = useRef();
   const [preview, setPreview] = useState(null);
-const { user, selectedchat, loading } = useAuth();
+  const { user, selectedchat, loading } = useAuth();
   const typingRef = useRef(false);
-// console.log("input select",selectedchat);
-// console.log("user",user);
+  // console.log("input select",selectedchat);
+  // console.log("user",user);
+  const inputRef = useRef();
+  const handleclick = async () => {
+    if (!input.trim() && !inputfile) return;
 
- const handleclick = async () => {
-  
-  if (!input.trim() && !inputfile) return;
+    if (!selectedchat?._id) {
+      console.log('No chat selected');
+      return;
+    }
 
-if (!selectedchat?._id) {
-  console.log("No chat selected");
-  return;
-}
-
-if (!user?._id) {
-  console.log("User not ready");
-  return;
-}
-// console.log("SEND CLICK", {
-//   input,
-//   file: inputfile,
-//   user,
-//   selectedchat
-// });
-  socket.emit('stop_typing', {
-    chatId: selectedchat._id,
-    userId: user._id,
-  });
+    if (!user?._id) {
+      console.log('User not ready');
+      return;
+    }
+    // console.log("SEND CLICK", {
+    //   input,
+    //   file: inputfile,
+    //   user,
+    //   selectedchat
+    // });
+    socket.emit('stop_typing', {
+      chatId: selectedchat._id,
+      userId: user._id,
+    });
     typingRef.current = false;
     clearTimeout(typingTimeoutRef.current);
     const tempId = Date.now();
@@ -136,18 +135,25 @@ if (!user?._id) {
 
               const url = URL.createObjectURL(file);
               setPreview(url);
+
+              inputRef.current?.focus();
             }}
           />
         </label>
 
         <input
+          ref={inputRef}
           type="text"
           value={input}
-disabled={loading || !selectedchat?._id || !user}
+          disabled={loading || !selectedchat?._id || !user}
+          placeholder="Type a message..."
+          className="flex-1 px-2 py-2 rounded-full focus:outline-none"
           onChange={(e) => {
             const value = e.target.value;
             setinput(value);
-if (!selectedchat?._id || !user?._id) return;
+
+            if (!selectedchat?._id || !user?._id) return;
+
             if (!typingRef.current) {
               socket.emit('typing', {
                 chatId: selectedchat._id,
@@ -163,24 +169,29 @@ if (!selectedchat?._id || !user?._id) return;
                 userId: user._id,
               });
               typingRef.current = false;
-            }, 1000);
+            }, 500);
           }}
-      onKeyDown={(e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    handleclick();
-  }
-}}
-          placeholder="Type a message..."
-          className="flex-1 px-2 py-2 rounded-full focus:outline-none"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+
+              if (input.trim() || inputfile) {
+                handleclick();
+              }
+            }
+          }}
         />
 
         <button
           type="button"
-          className="text-gray-500 mr-3 cursor-pointer hover:text-gray-600"
-onClick={() => {
-  handleclick();
-}}        >
+          disabled={!input.trim() && !inputfile}
+          className={`mr-3 cursor-pointer ${
+            !input.trim() && !inputfile
+              ? 'text-gray-300 cursor-not-allowed'
+              : 'text-gray-500 hover:text-gray-600'
+          }`}
+          onClick={handleclick}
+        >
           <Send />
         </button>
       </div>

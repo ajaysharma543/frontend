@@ -11,21 +11,21 @@ function Login() {
     formState: { errors },
   } = useForm();
   const navigate = useNavigate();
-  const {setUser} = useAuth();
+  const { setUser } = useAuth();
 
   const onSubmit = async (data) => {
     try {
-    await authapi.login(data);
+      await authapi.login(data);
 
-  const current = await authapi.getcurrentuser();
+      const current = await authapi.getcurrentuser();
 
-  localStorage.setItem("user", JSON.stringify(current.data.data.user));
+      localStorage.setItem('user', JSON.stringify(current.data.data.user));
 
-  setUser(current.data.data.user);
+      setUser(current.data.data.user);
 
-  // console.log(current.data.data.user);
+      // console.log(current.data.data.user);
 
-  navigate('/');
+      navigate('/');
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||

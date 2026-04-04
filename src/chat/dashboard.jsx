@@ -18,7 +18,7 @@ function Dashboard() {
 
         <div className="flex flex-1 overflow-hidden p-1">
           <div className="w-[30%] border-r bg-white m-3 mr-2 overflow-y-auto">
-            <Leftchat search={search}setsearch={setsearch} />
+            <Leftchat search={search} setsearch={setsearch} />
           </div>
 
           <div className="w-[70%] bg-white m-3 ml-1 overflow-y-auto">

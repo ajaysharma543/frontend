@@ -13,7 +13,7 @@ function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-  const {setUser} = useAuth();
+  const { setUser } = useAuth();
   const onsubmit = async (data) => {
     try {
       setLoading(true);
@@ -28,10 +28,10 @@ function Signup() {
       const response = await authapi.signup(formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      localStorage.setItem("user", JSON.stringify(response.data.data.user));
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
 
-setUser(response.data.data.user);
-socket.emit("join_user", response.data.data.user._id);
+      setUser(response.data.data.user);
+      socket.emit('join_user', response.data.data.user._id);
       navigate('/', { replace: true });
       toast.success('Registration successful 🎉', { duration: 3000 });
     } catch (error) {

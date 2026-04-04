@@ -7,15 +7,15 @@ function LogoutButton() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(''); // ✅ error state
   const navigate = useNavigate();
-  const {setUser} = useAuth();
+  const { setUser } = useAuth();
   const handleLogout = async () => {
     setLoading(true);
     setError(''); // clear previous error
 
     try {
       await authapi.logout();
-        localStorage.removeItem("user");
-  setUser(null);
+      localStorage.removeItem('user');
+      setUser(null);
       // console.log('✅ User logged out successfully');
       navigate('/login');
     } catch (err) {
@@ -33,9 +33,7 @@ function LogoutButton() {
       <button
         type="button"
         onClick={handleLogout}
-        className={` ${
-          loading ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
+        className={` ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
         disabled={loading}
       >
         {loading ? 'Logging out...' : 'Logout'}

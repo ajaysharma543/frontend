@@ -8,10 +8,10 @@ function Profile({ close }) {
   const { user, onlineUsers, lastSeenMap } = useAuth();
   const isOnline = onlineUsers.has(user?._id?.toString());
   const lastSeen = lastSeenMap[user?._id];
-const navigate = useNavigate();
+  const navigate = useNavigate();
   return (
-<div className="flex flex-col h-169.5">      
-        <div className="flex items-center justify-between p-4 border-b">
+    <div className="flex flex-col h-169.5">
+      <div className="flex items-center justify-between p-4 border-b">
         <h2 className="text-lg font-semibold">My Profile</h2>
         <button onClick={close}>❌</button>
       </div>
@@ -29,9 +29,7 @@ const navigate = useNavigate();
           )}
         </div>
 
-        <h3 className="mt-4 text-lg font-semibold">
-          {user?.username}
-        </h3>
+        <h3 className="mt-4 text-lg font-semibold">{user?.username}</h3>
 
         <p className="text-sm text-gray-500">
           {user?.bio || 'Hey there! I am using chat app'}
@@ -49,36 +47,41 @@ const navigate = useNavigate();
           <p className="text-sm">{user?._id}</p>
         </div>
 
-        <div className='flex items-center'>
+        <div className="flex items-center">
           <p className="text-xs text-gray-800">Status :</p>
 
           {isOnline ? (
             <span className="text-sm text-green-500">🟢 Online</span>
           ) : (
             <span className="text-sm text-gray-400">
-              ⚫ {lastSeen ? `Last seen: ${new Date(lastSeen).toLocaleTimeString()}` : 'Offline'}
+              ⚫{' '}
+              {lastSeen
+                ? `Last seen: ${new Date(lastSeen).toLocaleTimeString()}`
+                : 'Offline'}
             </span>
           )}
         </div>
       </div>
 
       <div className="mt-2 p-4 border-t flex flex-col items-center gap-3">
-        <button  onClick={() => navigate("/edit-profile")}
-         className="w-full py-2 bg-gray-100 rounded-lg hover:bg-gray-200">
+        <button
+          onClick={() => navigate('/edit-profile')}
+          className="w-full py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+        >
           ✏️ Edit Profile
         </button>
-        
-         <button className="w-full py-2 flex items-center justify-center  bg-gray-100 rounded-lg hover:bg-gray-200">
-          <Bell className='text-amber-600'/>
-           Notification Setting
+
+        <button className="w-full py-2 flex items-center justify-center  bg-gray-100 rounded-lg hover:bg-gray-200">
+          <Bell className="text-amber-600" />
+          Notification Setting
         </button>
 
         <button className="w-full py-2 bg-gray-100 rounded-lg hover:bg-gray-200">
           📷 Change Photo
         </button>
 
-          <div className="px-6 w-full flex justify-center py-2 cursor-pointer rounded-xl bg-red-500/20 text-red-500 font-semibold border border-red-500/30 hover:bg-red-500 hover:text-white transition">
-            <LogoutButton />
+        <div className="px-6 w-full flex justify-center py-2 cursor-pointer rounded-xl bg-red-500/20 text-red-500 font-semibold border border-red-500/30 hover:bg-red-500 hover:text-white transition">
+          <LogoutButton />
         </div>
       </div>
     </div>

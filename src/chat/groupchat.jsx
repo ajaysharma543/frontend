@@ -10,7 +10,15 @@ function Groupchat() {
   const [loading, setLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [name, setname] = useState('');
-  const {  searchUsers,setselectedchat,selectedchat,fetchUsers,user,setChatUsers } = useAuth();
+  const {
+    searchUsers,
+    setselectedchat,
+    selectedchat,
+    fetchUsers,
+    user,
+    setChatUsers,
+  } = useAuth();
+  
   useEffect(() => {
     if (search.trim() === '') {
       setDebouncedSearch('');
@@ -29,15 +37,15 @@ function Groupchat() {
   }, [search]);
 
   useEffect(() => {
-  if (!debouncedSearch.trim()) return;
+    if (!debouncedSearch.trim()) return;
 
-  fetchUsers(debouncedSearch);
-}, [debouncedSearch]);
+    fetchUsers(debouncedSearch);
+  }, [debouncedSearch]);
 
-const filteredUser =
-  debouncedSearch.trim() === ''
-    ? []
-    : searchUsers.filter((u) => u._id !== user?._id);
+  const filteredUser =
+    debouncedSearch.trim() === ''
+      ? []
+      : searchUsers.filter((u) => u._id !== user?._id);
 
   const toggleUser = (user) => {
     const exists = selectedUsers.some((u) => u._id === user._id);
@@ -49,77 +57,72 @@ const filteredUser =
     }
   };
 
-const creategroup = async () => {
-  let tempId = "temp-" + Date.now();
-  let previousChats;
+  const creategroup = async () => {
+    let tempId = 'temp-' + Date.now();
+    let previousChats;
 
-  try {
-    if (!name.trim()) {
-      alert("Enter group name");
-      return;
+    try {
+      if (!name.trim()) {
+        alert('Enter group name');
+        return;
+      }
+
+      if (selectedUsers.length === 0) {
+        alert('Select at least two user');
+        return;
+      }
+
+      previousChats = selectedchat;
+
+      const tempGroup = {
+        _id: tempId,
+        isGroup: true,
+        chatName: name,
+        members: [...selectedUsers, user],
+        lastMessage: null,
+        groupAdmin: user,
+        isTemp: true,
+      };
+
+      setChatUsers((prev) => [tempGroup, ...prev]);
+      setselectedchat(tempGroup);
+
+      setOpen(false);
+      setSelectedUsers([]);
+      setname('');
+      setSearch('');
+
+      const res = await Chatapi.creategroupchat({
+        name,
+        members: selectedUsers.map((u) => u._id),
+      });
+
+      const newGroup = res.data.data;
+
+      const realGroup = {
+        _id: newGroup._id,
+        isGroup: true,
+        chatName: newGroup.chatName,
+        members: newGroup.members,
+        lastMessage: null,
+        groupAdmin: newGroup.groupAdmin,
+      };
+
+      setChatUsers((prev) =>
+        prev.map((chat) => (chat._id === tempId ? realGroup : chat))
+      );
+
+      setselectedchat(realGroup);
+    } catch (error) {
+      console.log(error);
+
+      setChatUsers((prev) => prev.filter((chat) => chat._id !== tempId));
+
+      if (previousChats) {
+        setselectedchat(previousChats);
+      }
     }
-
-    if (selectedUsers.length === 0) {
-      alert("Select at least two user");
-      return;
-    }
-
-    previousChats = selectedchat;
-
-    const tempGroup = {
-      _id: tempId,
-      isGroup: true,
-      chatName: name,
-      members: [...selectedUsers, user],
-      lastMessage: null,
-      groupAdmin: user,
-      isTemp: true,
-    };
-
-    setChatUsers((prev) => [tempGroup, ...prev]);
-    setselectedchat(tempGroup);
-
-    setOpen(false);
-    setSelectedUsers([]);
-    setname("");
-    setSearch("");
-
-    const res = await Chatapi.creategroupchat({
-      name,
-      members: selectedUsers.map((u) => u._id),
-    });
-
-    const newGroup = res.data.data;
-
-    const realGroup = {
-      _id: newGroup._id,
-      isGroup: true,
-      chatName: newGroup.chatName,
-      members: newGroup.members,
-      lastMessage: null,
-      groupAdmin: newGroup.groupAdmin,
-    };
-
-    setChatUsers((prev) =>
-      prev.map((chat) =>
-        chat._id === tempId ? realGroup : chat
-      )
-    );
-
-    setselectedchat(realGroup);
-
-  } catch (error) {
-    console.log(error);
-
-    setChatUsers((prev) =>
-      prev.filter((chat) => chat._id !== tempId)
-    );
-
-    if (previousChats) {
-      setselectedchat(previousChats);
-    }
-  }
-};
+  };
   return (
     <>
       <button

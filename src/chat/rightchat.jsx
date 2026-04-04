@@ -19,26 +19,39 @@ function Rightchat() {
   const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
-    socket.on('message_deleted', ({ messageId }) => {
-      setmessges((prev) => prev.filter((msg) => msg._id !== messageId));
-    });
-    return () => {
-      socket.off('message_deleted');
+    const handleDelete = ({ messageId, chatId, lastMessage }) => {
+      setmessges((prev = []) =>
+        prev.map((m) =>
+          m._id?.toString() === messageId?.toString()
+            ? {
+                ...m,
+                content: 'This message was deleted',
+                image: null,
+                isDeleted: true,
+              }
+            : m
+        )
+      );
     };
+
+    socket.on('message_deleted', handleDelete);
+
+    return () => socket.off('message_deleted', handleDelete);
   }, []);
 
- useEffect(() => {
-  if (!selectedchat?._id) return;
+  useEffect(() => {
+    if (!selectedchat?._id) return;
 
-  socket.emit('join_chat', selectedchat._id);
+    socket.emit('join_chat', selectedchat._id);
 
-  return () => {
-    socket.emit('leave_chat', selectedchat._id);
-  };
-}, [selectedchat?._id]);
-useEffect(() => {
-  bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-}, [messages, isTyping]);
+    return () => {
+      socket.emit('leave_chat', selectedchat._id);
+    };
+  }, [selectedchat?._id]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
 
   useEffect(() => {
     if (!selectedchat?._id) return;
@@ -113,11 +126,12 @@ useEffect(() => {
     return () => socket.off('messages_read', handleRead);
   }, [selectedchat]);
 
-useEffect(() => {
-  if (selectedchat?._id && user?._id) {
-    socket.emit("get_online_users"); // 🔥 KEY FIX
-  }
-}, [selectedchat?._id, user?._id]);
+  useEffect(() => {
+    if (selectedchat?._id && user?._id) {
+      socket.emit('get_online_users'); 
+    }
+  }, [selectedchat?._id, user?._id]);
+  
   useEffect(() => {
     if (!selectedchat?._id) return;
 
@@ -131,11 +145,15 @@ useEffect(() => {
         const response = await Messageapi.getmessage(selectedchat._id);
         if (!isMounted) return;
 
-        setmessges(response.data.data.messages);
+        const msgs = response?.data?.data?.messages;
+
+        if (Array.isArray(msgs)) {
+          setmessges(msgs);
+        } else {
+          setmessges([]);
+        }
         Messageapi.markasread(selectedchat._id);
         setLoadingMessages(false);
-
-
       } catch (error) {
         console.log(error);
       }
@@ -150,9 +168,7 @@ useEffect(() => {
 
   if (!selectedchat || !selectedchat._id) {
     return (
-      <div className="h-full flex items-center justify-center flex-col gap-3">
-       
-      </div>
+      <div className="h-full flex items-center justify-center flex-col gap-3"></div>
     );
   }
   const otheruser = selectedchat?.members?.find(

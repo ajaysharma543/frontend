@@ -1,13 +1,13 @@
-import React, { useMemo, useState } from "react";
-import { useAuth } from "../context/context";
-import { Bell } from "lucide-react";
-import { GetTimeAgo } from "../context/gettimeago";
-import socket from "../socket/socket.io";
-import Messageapi from "../api/message.api";
-import Chatapi from "../api/chat.api";
+import React, { useMemo, useState } from 'react';
+import { useAuth } from '../context/context';
+import { Bell } from 'lucide-react';
+import { GetTimeAgo } from '../context/gettimeago';
+import socket from '../socket/socket.io';
+import Messageapi from '../api/message.api';
+import Chatapi from '../api/chat.api';
 
 function Notifications() {
-  const { chatUsers, setselectedchat ,setChatUsers} = useAuth();
+  const { chatUsers, setselectedchat, setChatUsers } = useAuth();
   const [open, setOpen] = useState(false);
 
   const totalUnread = useMemo(() => {
@@ -16,17 +16,17 @@ function Notifications() {
     }, 0);
   }, [chatUsers]);
 
-  const myId = JSON.parse(localStorage.getItem("user"))?._id;
+  const myId = JSON.parse(localStorage.getItem('user'))?._id;
 
   const notifications = (chatUsers || []).filter((chat) => {
     return (
       chat.lastMessage &&
       chat.lastMessage.sender?._id !== myId &&
       chat.unreadCount > 0
-    );    
+    );
   });
 
-   const accesschat = async (item) => {
+  const accesschat = async (item) => {
     try {
       let chat;
       let newItem = item;
@@ -47,9 +47,9 @@ function Notifications() {
       } else {
         chat = item;
       }
-      
+
       setselectedchat(chat);
-      
+
       socket.emit('join_chat', chat._id);
 
       await Messageapi.markasread(chat._id);
@@ -75,19 +75,18 @@ function Notifications() {
           });
         }
 
-       return [
+        return [
           {
             ...newItem,
             unreadCount: 0,
           },
           ...prev,
         ];
-      })
+      });
     } catch (error) {
       console.log(error);
     }
   };
-
 
   return (
     <div
@@ -135,25 +134,25 @@ function Notifications() {
                 notifications.map((chat) => {
                   const isGroup = chat?.isGroup;
                   const senderName =
-                    chat?.lastMessage?.sender?.fullname || "User";
+                    chat?.lastMessage?.sender?.fullname || 'User';
 
                   const displayName = isGroup
-                    ? chat?.chatName || "Group"
-                    : chat?.fullname || "User";
+                    ? chat?.chatName || 'Group'
+                    : chat?.fullname || 'User';
 
                   return (
                     <div
                       key={chat._id}
                       onClick={() => {
-accesschat(chat)                   
-  setOpen(false);
+                        accesschat(chat);
+                        setOpen(false);
                       }}
                       className="flex gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition"
                     >
                       <img
                         src={
                           chat?.avatar?.url ||
-                          "https://ui-avatars.com/api/?name=User"
+                          'https://ui-avatars.com/api/?name=User'
                         }
                         alt="user"
                         className="w-9 h-9 border-y-yellow-950 border rounded-full object-cover"
@@ -164,18 +163,18 @@ accesschat(chat)
                           <p className="text-sm text-gray-700 leading-snug">
                             <span className="font-semibold text-gray-800">
                               {displayName}
-                            </span>{" "}
+                            </span>{' '}
                             {chat?.lastMessage?.content
                               ? isGroup
                                 ? `${senderName} sent a message`
-                                : "sent you a message"
+                                : 'sent you a message'
                               : chat?.lastMessage?.image
-                              ? isGroup
-                                ? `${senderName} sent an image 📷`
-                                : "sent you an image 📷"
-                              : isGroup
-                              ? `${senderName} sent something`
-                              : "sent you something"}
+                                ? isGroup
+                                  ? `${senderName} sent an image 📷`
+                                  : 'sent you an image 📷'
+                                : isGroup
+                                  ? `${senderName} sent something`
+                                  : 'sent you something'}
                           </p>
 
                           <span className="text-[10px] text-gray-400 ml-2 whitespace-nowrap">
@@ -186,10 +185,10 @@ accesschat(chat)
                         {chat?.unreadCount > 0 && (
                           <p className="text-xs text-red-500 mt-1 font-medium">
                             {chat.unreadCount === 1
-                              ? "1 new message"
+                              ? '1 new message'
                               : chat.unreadCount <= 4
-                              ? `${chat.unreadCount} new messages`
-                              : "4+ messages"}
+                                ? `${chat.unreadCount} new messages`
+                                : '4+ messages'}
                           </p>
                         )}
                       </div>
@@ -199,7 +198,6 @@ accesschat(chat)
               )}
             </div>
 
-            {/* Footer */}
             <div className="text-center py-2 border-t">
               <button className="text-sm text-blue-500 hover:underline">
                 View all notifications

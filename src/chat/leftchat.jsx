@@ -7,22 +7,31 @@ import socket from '../socket/socket.io';
 import { useRef } from 'react';
 import { SearchIcon } from 'lucide-react';
 
-function Leftchat({ search,setsearch }) {
+function Leftchat({ search, setsearch }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [debounce, setdebounce] = useState('');
-  const { user, allUsers,filteredUsers,setFilteredUsers,searchUsers, selectedchat,fetchUsers,setChatUsers,chatUsers } = useAuth();
+  const {
+    user,
+    allUsers,
+    filteredUsers,
+    setFilteredUsers,
+    searchUsers,
+    selectedchat,
+    fetchUsers,
+    setChatUsers,
+    chatUsers,
+  } = useAuth();
   const handlerRef = useRef();
   const selectedChatRef = useRef(selectedchat);
   const userRef = useRef(user);
 
-
   // console.log("first user",user);
   useEffect(() => {
-  userRef.current = user;
-}, [user]);
+    userRef.current = user;
+  }, [user]);
   useEffect(() => {
-      if (!user?._id) return;
+    if (!user?._id) return;
     const fetchchats = async () => {
       try {
         setLoading(true);
@@ -43,14 +52,12 @@ function Leftchat({ search,setsearch }) {
               chatName: c.chatName,
               avatar: c.avatar,
               members: c.members,
-              groupAdmin : c.groupAdmin,
+              groupAdmin: c.groupAdmin,
               lastMessage: lastMsg,
               unreadCount: c.unreadCount || 0,
             });
           } else {
- const otherUser = c.members?.find(
-            (m) => m?._id !== user._id 
-          );
+            const otherUser = c.members?.find((m) => m?._id !== user._id);
             if (otherUser) {
               chatMap.set(otherUser._id, {
                 ...otherUser,
@@ -106,103 +113,100 @@ function Leftchat({ search,setsearch }) {
     selectedChatRef.current = selectedchat;
   }, [selectedchat]);
 
-useEffect(() => {
-  handlerRef.current = (newMsg) => {
+  useEffect(() => {
+    handlerRef.current = (newMsg) => {
       // console.log("second user",user);
-if (!userRef.current?._id){
-        console.log("Skipping message, user not ready");
-      return;
-    }
-
-    const chatId = newMsg.chat?._id || newMsg.chat;
-    const messageId = newMsg._id;
-
-    setChatUsers((prev) => {
-      let found = false;
-
-      let updated = prev.map((chat) => {
-        const isSameChat = chat.isGroup
-          ? chat._id === chatId
-          : chat.chatId === chatId;
-
-        if (isSameChat) {
-          found = true;
-
-          const isSameMessage =
-            chat.lastMessage?._id?.toString() === messageId?.toString();
-
-          if (isSameMessage) return chat;
-
-          const isCurrentChatOpen =
-            selectedChatRef.current?._id === chatId;
-
-          return {
-            ...chat,
-            lastMessage: newMsg,
-            unreadCount: isCurrentChatOpen
-              ? 0
-              : (chat.unreadCount || 0) + 1,
-          };
-        }
-
-        return chat;
-      });
-
-      if (!found && newMsg.chat) {
-        let newChatItem;
-
-        if (newMsg.chat.isGroup) {
-          newChatItem = {
-            _id: newMsg.chat._id,
-            isGroup: true,
-            chatName: newMsg.chat.chatName,
-            members: newMsg.chat.members,
-            lastMessage: newMsg,
-            unreadCount: 1,
-          };
-        } else {
-          const otherUser = newMsg.chat.members?.find(
-(m) => m._id !== userRef.current?._id
-          );
-
-          newChatItem = {
-            ...otherUser,
-            isGroup: false,
-            chatId: newMsg.chat._id,
-            lastMessage: newMsg,
-            unreadCount: 1,
-          };
-        }
-
-        updated = [newChatItem, ...prev];
+      if (!userRef.current?._id) {
+        console.log('Skipping message, user not ready');
+        return;
       }
 
-      updated.sort(
-        (a, b) =>
-          new Date(b.lastMessage?.createdAt || 0) -
-          new Date(a.lastMessage?.createdAt || 0)
-      );
+      const chatId = newMsg.chat?._id || newMsg.chat;
+      const messageId = newMsg._id;
 
-      setFilteredUsers(updated);
-      return updated;
-    });
-  };
-}, [selectedchat?._id, user]);
+      setChatUsers((prev) => {
+        let found = false;
 
- useEffect(() => {
-  const listener = (msg) => {
+        let updated = prev.map((chat) => {
+          const isSameChat = chat.isGroup
+            ? chat._id === chatId
+            : chat.chatId === chatId;
+
+          if (isSameChat) {
+            found = true;
+
+            const isSameMessage =
+              chat.lastMessage?._id?.toString() === messageId?.toString();
+
+            if (isSameMessage) return chat;
+
+            const isCurrentChatOpen = selectedChatRef.current?._id === chatId;
+
+            return {
+              ...chat,
+              lastMessage: newMsg,
+              unreadCount: isCurrentChatOpen ? 0 : (chat.unreadCount || 0) + 1,
+            };
+          }
+
+          return chat;
+        });
+
+        if (!found && newMsg.chat) {
+          let newChatItem;
+
+          if (newMsg.chat.isGroup) {
+            newChatItem = {
+              _id: newMsg.chat._id,
+              isGroup: true,
+              chatName: newMsg.chat.chatName,
+              members: newMsg.chat.members,
+              lastMessage: newMsg,
+              unreadCount: 1,
+            };
+          } else {
+            const otherUser = newMsg.chat.members?.find(
+              (m) => m._id !== userRef.current?._id
+            );
+
+            newChatItem = {
+              ...otherUser,
+              isGroup: false,
+              chatId: newMsg.chat._id,
+              lastMessage: newMsg,
+              unreadCount: 1,
+            };
+          }
+
+          updated = [newChatItem, ...prev];
+        }
+
+        updated.sort(
+          (a, b) =>
+            new Date(b.lastMessage?.createdAt || 0) -
+            new Date(a.lastMessage?.createdAt || 0)
+        );
+
+        setFilteredUsers(updated);
+        return updated;
+      });
+    };
+  }, [selectedchat?._id, user]);
+
+  useEffect(() => {
+    const listener = (msg) => {
       // console.log(" SOCKET MESSAGE RECEIVED:", msg);
-    if (handlerRef.current) {
-      handlerRef.current(msg);
-    }
-  };
+      if (handlerRef.current) {
+        handlerRef.current(msg);
+      }
+    };
 
-  socket.on('new_message', listener);
+    socket.on('new_message', listener);
 
-  return () => {
-    socket.off('new_message', listener);
-  };
-}, []); 
+    return () => {
+      socket.off('new_message', listener);
+    };
+  }, []);
 
   useEffect(() => {
     const handleMessagesRead = ({ chatId, userId }) => {
@@ -242,53 +246,49 @@ if (!userRef.current?._id){
     };
   }, []);
 
-useEffect(() => {
-  if (!debounce.trim()) return;
+  useEffect(() => {
+    if (!debounce.trim()) return;
 
-  fetchUsers(debounce);
-}, [debounce]);
+    fetchUsers(debounce);
+  }, [debounce]);
 
-useEffect(() => {
-  const timer = setTimeout(() => {
-    setdebounce(search);
-  }, 400);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setdebounce(search);
+    }, 400);
 
-  return () => clearTimeout(timer);
-}, [search]);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-useEffect(() => {
-  if (!debounce.trim()) {
-    setFilteredUsers(chatUsers);
-    return;
-  }
+  useEffect(() => {
+    if (!debounce.trim()) {
+      setFilteredUsers(chatUsers);
+      return;
+    }
 
-  const searchText = debounce.toLowerCase();
+    const searchText = debounce.toLowerCase();
 
-  const userResults = searchUsers.map((u) => {
-    const existing = chatUsers.find(
-      (c) => !c.isGroup && c._id === u._id
+    const userResults = searchUsers.map((u) => {
+      const existing = chatUsers.find((c) => !c.isGroup && c._id === u._id);
+
+      return (
+        existing || {
+          ...u,
+          isGroup: false,
+          chatId: null,
+          lastMessage: null,
+        }
+      );
+    });
+
+    const groupResults = chatUsers.filter(
+      (c) => c.isGroup && c.chatName?.toLowerCase().includes(searchText)
     );
 
-    return (
-      existing || {
-        ...u,
-        isGroup: false,
-        chatId: null,
-        lastMessage: null,
-      }
-    );
-  });
+    const combined = [...groupResults, ...userResults];
 
-  const groupResults = chatUsers.filter(
-    (c) =>
-      c.isGroup &&
-      c.chatName?.toLowerCase().includes(searchText)
-  );
-
-  const combined = [...groupResults, ...userResults];
-
-  setFilteredUsers(combined);
-}, [searchUsers, chatUsers, debounce]);
+    setFilteredUsers(combined);
+  }, [searchUsers, chatUsers, debounce]);
 
   useEffect(() => {
     const handleGroupCreated = (group) => {
@@ -298,7 +298,7 @@ useEffect(() => {
         chatName: group.chatName,
         members: group.members,
         lastMessage: null,
-        groupAdmin : group.groupAdmin,
+        groupAdmin: group.groupAdmin,
       };
 
       setChatUsers((prev) => {
@@ -323,15 +323,10 @@ useEffect(() => {
 
   return (
     <div className="h-full flex flex-col bg-white">
-
       <h1 className="p-4 text-lg font-semibold border-b">My Chats</h1>
 
-      {/* Group Button */}
-      <Groupchat
-        setFilteredUsers={setFilteredUsers}
-      />
+      <Groupchat setFilteredUsers={setFilteredUsers} />
 
-      {/* Chat List */}
       <Leftuser
         setsearch={setsearch}
         setdebounce={setdebounce}
@@ -340,7 +335,6 @@ useEffect(() => {
         loading={loading}
         error={error}
       />
-
     </div>
   );
 }
