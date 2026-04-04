@@ -211,18 +211,25 @@ function Leftuser({ setsearch, setdebounce, loading, error }) {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-center">
-                <h1 className="font-medium truncate">
-                  {item.isGroup ? item.chatName : item.fullname}
-                </h1>
+           <div className="flex justify-between items-center">
+  <h1 className="font-medium truncate">
+    {item.isGroup ? item.chatName : item.fullname}
+  </h1>
 
-                {latest?.createdAt && (
-                  <span className="text-xs text-gray-400 flex-shrink-0">
-                    {GetTimeAgo(latest.createdAt)}
-                  </span>
-                )}
-              </div>
+  <div className="flex flex-col items-end gap-1">
+    {latest?.createdAt && (
+      <span className="text-xs text-gray-400">
+        {GetTimeAgo(latest.createdAt)}
+      </span>
+    )}
 
+    {item.unreadCount > 0 && !isActive && (
+      <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+        {item.unreadCount > 4 ? '4+' : item.unreadCount}
+      </span>
+    )}
+  </div>
+</div>
               <p className={`text-sm ${messageColor}`}>{messageText}</p>
             </div>
           </div>
