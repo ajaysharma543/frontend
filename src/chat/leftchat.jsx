@@ -30,6 +30,7 @@ function Leftchat({ search, setsearch }) {
   useEffect(() => {
     userRef.current = user;
   }, [user]);
+  
   useEffect(() => {
     if (!user?._id) return;
     const fetchchats = async () => {

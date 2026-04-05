@@ -6,11 +6,13 @@ import LogoutButton from '../authentication/logout';
 import socket from '../socket/socket.io';
 import { useState } from 'react';
 import GroupEdit from './groupNameEdit';
+import { useChat } from '../context/message.context';
 
 function Rightheader() {
   const [showUserInfo, setShowUserInfo] = useState(false);
-  const { user, selectedchat, onlineUsers, lastSeenMap, onlineLoaded } =
+  const { user, selectedchat } =
     useAuth();
+   const { onlineUsers, lastSeenMap, onlineLoaded} = useChat();
   const otheruser = selectedchat?.members?.find(
     (item) => item?._id !== user?._id
   );

@@ -4,6 +4,7 @@ import { useAuth } from '../context/context';
 import { GetTimeAgo } from '../context/gettimeago';
 import socket from '../socket/socket.io';
 import Messageapi from '../api/message.api';
+import { useChat } from '../context/message.context';
 
 function Leftuser({ setsearch, setdebounce, loading, error }) {
   const {
@@ -12,9 +13,9 @@ function Leftuser({ setsearch, setdebounce, loading, error }) {
     filteredUsers,
     setChatUsers,
     selectedchat,
-    onlineUsers,
     user,
   } = useAuth();
+  const {onlineUsers} = useChat();
 
   const accesschat = async (item) => {
     try {

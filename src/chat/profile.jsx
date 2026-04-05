@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../context/context';
 import LogoutButton from '../authentication/logout';
 import { Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useChat } from '../context/message.context';
 
 function Profile({ close }) {
-  const { user, onlineUsers, lastSeenMap } = useAuth();
+  const { user} = useAuth();
+  const {  onlineUsers, lastSeenMap } = useChat();
   const isOnline = onlineUsers.has(user?._id?.toString());
   const lastSeen = lastSeenMap[user?._id];
   const navigate = useNavigate();
@@ -42,9 +44,15 @@ function Profile({ close }) {
           <p className="text-sm">{user?.email || 'Not added'}</p>
         </div>
 
+        
+
         <div>
           <p className="text-xs text-gray-800">User ID</p>
           <p className="text-sm">{user?._id}</p>
+        </div>
+         <div>
+          <p className="text-xs text-gray-800">Gender</p>
+          <p className="text-sm">{user?.gender || 'Not added'}</p>
         </div>
 
         <div className="flex items-center">
