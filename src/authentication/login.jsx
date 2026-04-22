@@ -3,8 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import bg from '../assets/684352c65e4b85577f86845f1d930748-62051589143562rhvtbduqia.jpg';
 import authapi from '../api/user.api';
 import { useAuth } from '../context/context';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 function Login() {
+    const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -15,6 +20,7 @@ function Login() {
 
   const onSubmit = async (data) => {
     try {
+            setLoading(true);
       await authapi.login(data);
 
       const current = await authapi.getcurrentuser();
@@ -33,6 +39,9 @@ function Login() {
         'Invalid email or password. Please try again.';
       console.log(errorMessage);
     }
+    finally{
+            setLoading(false);
+    }
   };
 
   return (
@@ -40,10 +49,8 @@ function Login() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      {/* Card */}
 
       <div className="w-full max-w-md p-5 rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
-        {/* Heading */}
         <h2 className="text-3xl font-semibold text-center text-gray-600 mb-2">
           Login Account
         </h2>
@@ -52,9 +59,7 @@ function Login() {
           Welcome back 👋 Please login to continue
         </p>
 
-        {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Email */}
           <div>
             <label className="block text-sm font-semibold mb-2 text-white">
               Email Address
@@ -76,21 +81,27 @@ function Login() {
             )}
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-sm font-semibold mb-2 text-white">
               Password
             </label>
-
+                        <div className="relative">
             <input
-              type="password"
+                type={showPassword ? 'text' : 'password'}
               placeholder="Enter your password"
               {...register('password', { required: 'Password is required' })}
               className="w-full px-4 py-3 rounded-xl text-black border border-gray-300
               focus:outline-none focus:ring-2 focus:ring-orange-400
               transition duration-200"
             />
-
+             <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 cursor-pointer top-1/2 -translate-y-1/2 text-black"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+</div>
             {errors.password && (
               <p className="text-red-400 text-xs mt-1">
                 {errors.password.message}
@@ -98,7 +109,6 @@ function Login() {
             )}
           </div>
 
-          {/* Forgot password */}
           <div className="flex justify-end text-sm">
             <Link
               to="/"
@@ -108,16 +118,23 @@ function Login() {
             </Link>
           </div>
 
-          {/* Button */}
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 
-            hover:from-orange-500 hover:to-orange-600 transition text-white font-semibold shadow-lg"
+            disabled={loading}
+            className="w-full py-2 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 
+  hover:from-orange-500 hover:to-orange-600 transition text-white font-semibold shadow-lg
+  flex items-center justify-center gap-2"
           >
-            Login
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                Creating...
+              </>
+            ) : (
+              'Login'
+            )}
           </button>
 
-          {/* Signup */}
           <p className="text-center text-sm text-gray-200">
             Don’t have an account?{' '}
             <Link

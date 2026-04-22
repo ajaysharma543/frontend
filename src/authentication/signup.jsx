@@ -70,7 +70,6 @@ function Signup() {
         </p>
 
         <form onSubmit={handleSubmit(onsubmit)} className="space-y-3">
-          {/* Name + Username */}
           <div className="flex gap-3">
             <div className="w-1/2">
               <label className="block text-sm font-semibold mb-1 text-white">
@@ -113,7 +112,6 @@ function Signup() {
             </div>
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-sm font-semibold mb-1 text-white">
               Email Address
@@ -133,7 +131,6 @@ function Signup() {
               </p>
             )}
           </div>
-          {/* Password */}
           <div>
             <label className="block text-sm font-semibold mb-1 text-white">
               Password
@@ -164,7 +161,6 @@ function Signup() {
             )}
           </div>
 
-          {/* Confirm Password */}
           <div>
             <label className="block text-sm font-semibold mb-1 text-white">
               Confirm Password
@@ -240,7 +236,6 @@ function Signup() {
             )}
           </button>
 
-          {/* Login Link */}
           <p className="text-center text-sm text-gray-200">
             Already have an account?{' '}
             <Link
