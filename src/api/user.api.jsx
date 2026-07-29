@@ -14,7 +14,6 @@ const authapi = {
     axiosclient.patch('/users/update-profile', data),
   updateprofile: (data) => axiosclient.patch('/users/change-avatar', data),
   removeavatar: () => axiosclient.patch('/users/remove-avatar'),
-  health: () => axiosclient.get('/health'),
 };
 
 export default authapi;
