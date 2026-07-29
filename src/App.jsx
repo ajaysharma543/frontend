@@ -9,9 +9,8 @@ import AuthRedirect from './authentication/protectroute';
 import { Toaster } from 'react-hot-toast';
 import Rightchat from './chat/rightchat';
 import Editprofile from './chat/editprofile';
-import LoadingScreen from './LoadingScreen';
 import authapi from './api/user.api';
-
+import LoadingScreen from './loadingscreen'
 
 function App() {
   const [serverReady, setServerReady] = useState(false);
