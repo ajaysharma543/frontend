@@ -7,8 +7,9 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 function Login() {
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState(''); // NEW
 
   const {
     register,
@@ -20,7 +21,8 @@ function Login() {
 
   const onSubmit = async (data) => {
     try {
-            setLoading(true);
+      setLoading(true);
+      setApiError(''); // NEW — clear old error on retry
       await authapi.login(data);
 
       const current = await authapi.getcurrentuser();
@@ -29,21 +31,17 @@ function Login() {
 
       setUser(current.data.data.user);
 
-      // console.log(current.data.data.user);
-
       navigate('/');
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.error ||
         'Invalid email or password. Please try again.';
-      console.log(errorMessage);
-    }
-    finally{
-            setLoading(false);
+      setApiError(errorMessage); // NEW — instead of just console.log
+    } finally {
+      setLoading(false);
     }
   };
-
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
@@ -109,7 +107,7 @@ function Login() {
             )}
           </div>
 
-          <div className="flex justify-end text-sm">
+    <div className="flex justify-end text-sm">
             <Link
               to="/"
               className="text-gray-200 hover:text-white hover:underline"
@@ -117,6 +115,12 @@ function Login() {
               Forgot Password?
             </Link>
           </div>
+
+          {apiError && (
+            <div className="bg-red-500/10 border border-red-400/30 text-red-300 text-sm rounded-xl px-4 py-3 text-center">
+              {apiError}
+            </div>
+          )}
 
           <button
             type="submit"
@@ -128,7 +132,7 @@ function Login() {
             {loading ? (
               <>
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                Creating...
+                Logging In...
               </>
             ) : (
               'Login'

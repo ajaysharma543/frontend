@@ -28,7 +28,6 @@ function AuthRedirect({ children }) {
       </div>
     );
 
-  // If logged in → go dashboard
   if (isAuth) return <Navigate to="/" replace />;
 
   return children;
