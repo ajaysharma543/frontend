@@ -21,7 +21,7 @@ function App() {
     const pingServer = async () => {
       try {
         // Hit a lightweight health-check route on your backend
-        const res = await fetch( authapi.okdata());
+        const res = await authapi.health();
         if (res.ok) {
           if (!cancelled) setServerReady(true);
           return;
