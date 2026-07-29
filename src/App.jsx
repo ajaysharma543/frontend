@@ -1,5 +1,3 @@
-// App.jsx
-import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import './App.css';
 import Login from './authentication/login';
@@ -9,43 +7,8 @@ import AuthRedirect from './authentication/protectroute';
 import { Toaster } from 'react-hot-toast';
 import Rightchat from './chat/rightchat';
 import Editprofile from './chat/editprofile';
-import authapi from './api/user.api';
-import LoadingScreen from './loadingscreen'
 
 function App() {
-  const [serverReady, setServerReady] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const pingServer = async () => {
-      try {
-        // Hit a lightweight health-check route on your backend
-        const res = await authapi.health();
-        if (res.ok) {
-          if (!cancelled) setServerReady(true);
-          return;
-        }
-        throw new Error('Server not ready');
-      } catch (err) {
-        // Server likely still spinning up (Render/Heroku cold start) — retry
-        if (!cancelled) {
-          setTimeout(pingServer, 3000);
-        }
-      }
-    };
-
-    pingServer();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (!serverReady) {
-    return <LoadingScreen />;
-  }
-
   return (
     <>
       <Toaster position="bottom-center" reverseOrder={false} />
