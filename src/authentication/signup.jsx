@@ -1,19 +1,41 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import bg from '../assets/684352c65e4b85577f86845f1d930748-62051589143562rhvtbduqia.jpg';
+import { useState, useRef } from 'react';
 import authapi from '../api/user.api';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Camera, User, AtSign, Mail, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/context';
 import socket from '../socket/socket.io';
+import AuthInput from './AuthInput';
+import AuthBackdrop from './AuthPhotoBackdrop';
+
 function Signup() {
-  const [fileName, setFileName] = useState('No file chosen');
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const { setUser } = useAuth();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm();
+
+  const password = watch('password');
+  const avatarRegister = register('avatar', { required: 'Profile image is required' });
+
+  const handleImageChange = (e) => {
+    avatarRegister.onChange(e);
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
   const onsubmit = async (data) => {
     try {
       setLoading(true);
@@ -42,210 +64,157 @@ function Signup() {
     }
   };
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm();
-
-  const handleImageChange = (e) => {
-    if (e.target.files[0]) {
-      setFileName(e.target.files[0].name);
-    }
-  };
-  const password = watch('password');
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
-      style={{ backgroundImage: `url(${bg})` }}
-    >
-      <div className="w-full max-w-md p-6 rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
-        <h2 className="text-3xl font-semibold text-center text-gray-700 mb-1">
-          Create Account
-        </h2>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <AuthBackdrop />
 
-        <p className="text-center text-gray-500 mb-4 text-sm">
-          Sign up to start chatting 🚀
-        </p>
+      <div className="relative z-10 w-full max-w-md animate-fade-in-up">
+        <div className="p-6 rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
 
-        <form onSubmit={handleSubmit(onsubmit)} className="space-y-3">
-          <div className="flex gap-3">
-            <div className="w-1/2">
-              <label className="block text-sm font-semibold mb-1 text-white">
-                Full Name
-              </label>
-
-              <input
-                type="text"
-                placeholder="Enter your name"
-                {...register('fullname', { required: 'Name is required' })}
-                className="w-full px-3 py-2 rounded-xl text-black border border-gray-300
-                focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
-
-              {errors.fullname && (
-                <p className="text-red-400 text-xs mt-1">
-                  {errors.fullname.message}
-                </p>
-              )}
-            </div>
-
-            <div className="w-1/2">
-              <label className="block text-sm font-semibold mb-1 text-white">
-                Username
-              </label>
-
-              <input
-                type="text"
-                placeholder="Enter username"
-                {...register('username', { required: 'Username is required' })}
-                className="w-full px-3 py-2 rounded-xl text-black border border-gray-300
-                focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
-
-              {errors.username && (
-                <p className="text-red-400 text-xs mt-1">
-                  {errors.username.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-white">
-              Email Address
-            </label>
-
-            <input
-              type="email"
-              placeholder="Enter your email"
-              {...register('email', { required: 'Email is required' })}
-              className="w-full px-4 py-2 rounded-xl text-black border border-gray-300
-              focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
-
-            {errors.email && (
-              <p className="text-red-400 text-xs mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-white">
-              Password
-            </label>
-
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
-                {...register('password', { required: 'Password is required' })}
-                className="w-full px-4 py-2 pr-10 rounded-xl text-black border border-gray-300
-      focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 cursor-pointer top-1/2 -translate-y-1/2 text-black"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-
-            {errors.password && (
-              <p className="text-red-400 text-xs mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-white">
-              Confirm Password
-            </label>
-
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirm password"
-                {...register('confirmPassword', {
-                  required: 'Confirm your password',
-                  validate: (value) =>
-                    value === password || 'Passwords do not match',
-                })}
-                className="w-full px-4 py-2 pr-10 rounded-xl text-black border border-gray-300
-      focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3  cursor-pointer top-1/2 -translate-y-1/2 text-black"
-              >
-                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-
-            {errors.confirmPassword && (
-              <p className="text-red-400 text-xs mt-1">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-white">
-              Profile Image
-            </label>
-
-            <input
-              type="file"
-              accept="image/*"
-              {...register('avatar', {
-                required: 'Profile image is required',
-              })}
-              onChange={handleImageChange}
-              className="w-full text-sm text-white
-    file:mr-3 file:py-2 file:px-4
-    file:rounded-lg file:border-0
-    file:bg-orange-400 file:text-white
-    hover:file:bg-orange-500"
-            />
-
-            {errors.avatar && (
-              <p className="text-red-400 text-xs mt-1">
-                {errors.avatar.message}
-              </p>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 
-  hover:from-orange-500 hover:to-orange-600 transition text-white font-semibold shadow-lg
-  flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                Creating...
-              </>
-            ) : (
-              'Sign Up'
-            )}
-          </button>
-
-          <p className="text-center text-sm text-gray-200">
-            Already have an account?{' '}
-            <Link
-              to="/login"
-              className="text-orange-300 hover:text-orange-400 font-medium"
+          {/* Avatar picker */}
+          <div className="flex justify-center mb-3">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="relative w-20 h-20 rounded-full cursor-pointer group animate-pop-in"
             >
-              Login
-            </Link>
+              <div
+                className={`w-full h-full rounded-full border-2 flex items-center justify-center overflow-hidden transition-colors
+                  ${errors.avatar ? 'border-red-400' : 'border-white/40 group-hover:border-orange-300'} bg-white/20`}
+              >
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera size={22} className="text-white/70" />
+                )}
+              </div>
+              <span className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center border-2 border-white/40 group-hover:scale-110 transition-transform shadow-md">
+                <Camera size={11} className="text-white" />
+              </span>
+              <input
+                ref={(el) => { avatarRegister.ref(el); fileInputRef.current = el; }}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </button>
+          </div>
+          {errors.avatar && (
+            <p className="text-red-300 text-xs text-center -mt-1 mb-2">{errors.avatar.message}</p>
+          )}
+          {avatarPreview && !errors.avatar && (
+            <p className="text-white/50 text-xs text-center -mt-1 mb-2">Looking good ✨</p>
+          )}
+
+          <h2 className="text-3xl font-semibold text-center text-white mb-1">
+            Create Account
+          </h2>
+          <p className="text-center text-gray-200 mb-2 text-sm">
+            Sign up to start chatting 🚀
           </p>
-        </form>
+
+          <form onSubmit={handleSubmit(onsubmit)} className="space-y-4">
+            <div className="flex gap-3">
+              <div className="w-1/2">
+                <AuthInput
+                  type="text"
+                  label="Full Name"
+                  icon={<User size={17} />}
+                  error={errors.fullname?.message}
+                  {...register('fullname', { required: 'Name is required' })}
+                />
+              </div>
+              <div className="w-1/2">
+                <AuthInput
+                  type="text"
+                  label="Username"
+                  icon={<AtSign size={17} />}
+                  error={errors.username?.message}
+                  {...register('username', { required: 'Username is required' })}
+                />
+              </div>
+            </div>
+
+            <AuthInput
+              type="email"
+              label="Email Address"
+              icon={<Mail size={17} />}
+              error={errors.email?.message}
+              {...register('email', { required: 'Email is required' })}
+            />
+
+            <AuthInput
+              type={showPassword ? 'text' : 'password'}
+              label="Password"
+              icon={<Lock size={17} />}
+              error={errors.password?.message}
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="cursor-pointer text-gray-500 hover:text-orange-500 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              }
+              {...register('password', {
+                required: 'Password is required',
+                minLength: { value: 6, message: 'Minimum 6 characters' },
+              })}
+            />
+
+            <AuthInput
+              type={showConfirmPassword ? 'text' : 'password'}
+              label="Confirm Password"
+              icon={<Lock size={17} />}
+              error={errors.confirmPassword?.message}
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="cursor-pointer text-gray-500 hover:text-orange-500 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              }
+              {...register('confirmPassword', {
+                required: 'Confirm your password',
+                validate: (value) => value === password || 'Passwords do not match',
+              })}
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative overflow-hidden w-full py-2.5 rounded-2xl bg-gradient-to-r from-orange-400 to-orange-500
+                hover:from-orange-500 hover:to-orange-600 transition text-white font-semibold shadow-lg shadow-orange-500/30
+                flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {!loading && (
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent bg-[length:200%_100%] opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
+              )}
+              <span className="relative flex items-center gap-2">
+                {loading && (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                )}
+                {loading ? 'Creating...' : 'Sign Up'}
+              </span>
+            </button>
+
+            <p className="text-center text-sm text-gray-200">
+              Already have an account?{' '}
+              <Link
+                to="/login"
+                className="text-orange-300 hover:text-orange-400 font-medium"
+              >
+                Login
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   );
