@@ -1,6 +1,6 @@
 // App.jsx
 import { useEffect, useRef, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import Login from './authentication/login';
 import Signup from './authentication/signup';
@@ -12,60 +12,48 @@ import authapi from './api/user.api';
 import LoadingScreen from './loadingscreen';
 
 function App() {
-  const [serverReady, setServerReady] = useState(false);
-  const [attempt, setAttempt] = useState(0);
-  const startTimeRef = useRef(Date.now());
+  // Only gates the very first app load (server wake-up / auth check).
+  const [initialLoading, setInitialLoading] = useState(true);
+  const hasCheckedAuth = useRef(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    let cancelled = false;
-    let attemptCount = 0;
-
-    const pingServer = async () => {
-      attemptCount += 1;
-      if (!cancelled) setAttempt(attemptCount);
-
+    const fetchCurrentUser = async () => {
       try {
-        // Fail fast instead of hanging on a cold server
-        const res = await authapi.health({ timeout: 8000 });
+        await authapi.getcurrentuser();
 
-        if (res.status === 200) {
-          if (!cancelled) setServerReady(true);
-          return;
+        if (
+          location.pathname === '/login' ||
+          location.pathname === '/signup'
+        ) {
+          navigate('/');
         }
-        throw new Error('Server not ready');
       } catch (err) {
-        console.log(`Health check attempt ${attemptCount} failed:`, err.message);
-        if (!cancelled) {
-          // small delay before next retry
-          setTimeout(pingServer, 2000);
-        }
+        console.error(
+          '❌ No active session:',
+          err.response?.data || err.message
+        );
+        navigate('/login');
+      } finally {
+        setInitialLoading(false);
       }
     };
 
-    pingServer();
-
-    return () => {
-      cancelled = true;
-    };
+    // Only run the full-screen "waking up server" check once, on first mount.
+    if (!hasCheckedAuth.current) {
+      hasCheckedAuth.current = true;
+      fetchCurrentUser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!serverReady) {
-    const elapsedSeconds = Math.floor((Date.now() - startTimeRef.current) / 1000);
-    return (
-      <LoadingScreen
-        attempt={attempt}
-        message={
-          elapsedSeconds > 10
-            ? 'Waking up the server, this can take up to a minute on first load...'
-            : 'Connecting...'
-        }
-      />
-    );
-  }
+  if (initialLoading) return <LoadingScreen />;
 
   return (
     <>
       <Toaster position="bottom-center" reverseOrder={false} />
+
       <Routes>
         <Route
           path="/signup"
@@ -75,6 +63,7 @@ function App() {
             </AuthRedirect>
           }
         />
+
         <Route
           path="/login"
           element={
@@ -83,6 +72,7 @@ function App() {
             </AuthRedirect>
           }
         />
+
         <Route path="/" element={<Dashboard />} />
         <Route path="/edit-profile" element={<Editprofile />} />
       </Routes>
