@@ -12,7 +12,6 @@ function LoadingScreen({ label = 'Connecting to server' }) {
 
   return (
     <div className="fixed inset-0 w-screen h-screen flex flex-col items-center justify-center bg-[#1a1025] overflow-hidden">
-      {/* ambient glow, matches AuthBackdrop identity */}
       <div className="pointer-events-none absolute -top-24 -left-16 w-80 h-80 rounded-full bg-orange-500/15 blur-3xl" />
       <div className="pointer-events-none absolute bottom-[-15%] right-[-8%] w-96 h-96 rounded-full bg-pink-400/10 blur-3xl" />
 
