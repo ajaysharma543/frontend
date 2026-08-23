@@ -11,9 +11,8 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
   const [preview, setPreview] = useState(null);
   const { user, selectedchat, loading } = useAuth();
   const typingRef = useRef(false);
-  // console.log("input select",selectedchat);
-  // console.log("user",user);
   const inputRef = useRef();
+
   const handleclick = async () => {
     if (!input.trim() && !inputfile) return;
 
@@ -26,12 +25,7 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
       console.log('User not ready');
       return;
     }
-    // console.log("SEND CLICK", {
-    //   input,
-    //   file: inputfile,
-    //   user,
-    //   selectedchat
-    // });
+
     socket.emit('stop_typing', {
       chatId: selectedchat._id,
       userId: user._id,
@@ -120,8 +114,8 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
         </div>
       )}
 
-      <div className="flex items-center gap-3">
-        <label className="cursor-pointer ml-3 text-gray-600 hover:text-gray-500">
+      <div className="flex items-center gap-2 md:gap-3">
+        <label className="cursor-pointer ml-2 md:ml-3 text-gray-600 hover:text-gray-500 shrink-0">
           <Image />
           <input
             ref={fileRef}
@@ -147,7 +141,17 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
           value={input}
           disabled={loading || !selectedchat?._id || !user}
           placeholder="Type a message..."
-          className="flex-1 px-2 py-2 rounded-full focus:outline-none"
+          className="flex-1 min-w-0 px-2 py-2 rounded-full focus:outline-none"
+          onFocus={() => {
+            // Prevent mobile browsers from scrolling the whole page/header
+            // when the keyboard opens focus on this input.
+            requestAnimationFrame(() => {
+              inputRef.current?.scrollIntoView({
+                block: 'nearest',
+                inline: 'nearest',
+              });
+            });
+          }}
           onChange={(e) => {
             const value = e.target.value;
             setinput(value);
@@ -185,7 +189,7 @@ function Inputfooter({ setmessges, typingTimeoutRef }) {
         <button
           type="button"
           disabled={!input.trim() && !inputfile}
-          className={`mr-3 cursor-pointer ${
+          className={`mr-2 md:mr-3 cursor-pointer shrink-0 ${
             !input.trim() && !inputfile
               ? 'text-gray-300 cursor-not-allowed'
               : 'text-gray-500 hover:text-gray-600'
