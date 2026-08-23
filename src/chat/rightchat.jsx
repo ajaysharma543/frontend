@@ -1,3 +1,4 @@
+// Rightchat.jsx
 import LogoutButton from '../authentication/logout';
 import { useAuth } from '../context/context';
 import { useEffect, useState } from 'react';
@@ -10,6 +11,42 @@ import Rightheader from './rightheader';
 import Inputfooter from './inputfooter';
 import Messageapi from '../api/message.api';
 
+function MessageSkeleton() {
+  const rows = [
+    { mine: false, width: 'w-40' },
+    { mine: true, width: 'w-52' },
+    { mine: false, width: 'w-64' },
+    { mine: false, width: 'w-28' },
+    { mine: true, width: 'w-36' },
+    { mine: true, width: 'w-48' },
+  ];
+
+  return (
+    <div className="p-4 flex flex-col gap-3 animate-pulse">
+      {rows.map((row, i) => (
+        <div
+          key={i}
+          className={`flex items-end gap-2 ${
+            row.mine ? 'justify-end' : 'justify-start'
+          }`}
+        >
+          {!row.mine && (
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0" />
+          )}
+          <div
+            className={`h-9 ${row.width} rounded-2xl ${
+              row.mine ? 'bg-gray-300' : 'bg-gray-200'
+            }`}
+          />
+          {row.mine && (
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0" />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Rightchat() {
   const { selectedchat, user } = useAuth();
   const [messages, setmessges] = useState([]);
@@ -19,7 +56,7 @@ function Rightchat() {
   const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
-    const handleDelete = ({ messageId, chatId, lastMessage }) => {
+    const handleDelete = ({ messageId }) => {
       setmessges((prev = []) =>
         prev.map((m) =>
           m._id?.toString() === messageId?.toString()
@@ -128,10 +165,10 @@ function Rightchat() {
 
   useEffect(() => {
     if (selectedchat?._id && user?._id) {
-      socket.emit('get_online_users'); 
+      socket.emit('get_online_users');
     }
   }, [selectedchat?._id, user?._id]);
-  
+
   useEffect(() => {
     if (!selectedchat?._id) return;
 
@@ -176,12 +213,12 @@ function Rightchat() {
   );
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full w-full flex-1 flex flex-col min-w-0">
       <Rightheader />
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-3 md:p-4">
         {loadingMessages ? (
-          <p className="text-center text-gray-400">Loading messages...</p>
+          <MessageSkeleton />
         ) : (
           <Displaymessage
             messages={messages}

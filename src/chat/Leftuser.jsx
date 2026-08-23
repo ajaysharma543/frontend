@@ -196,7 +196,7 @@ function Leftuser({ setsearch, setdebounce, loading, error }) {
   }`}
           >
             {' '}
-            <div className="relative flex-shrink-0">
+            <div className="relative shrink-0">
               {item.isGroup ? (
                 <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
                   {item.chatName?.charAt(0).toUpperCase()}

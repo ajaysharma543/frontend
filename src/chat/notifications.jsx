@@ -110,7 +110,7 @@ function Notifications() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-sm h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="w-full max-w-sm h-125 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             <div className="flex justify-between items-center px-4 py-3 border-b bg-gray-50">
               <h2 className="text-base font-semibold text-gray-700">

@@ -47,11 +47,11 @@ const handleDelete = async () => {
 
   return (
     <div
-      className={`relative group rounded-2xl mb-0.5 px-7 py-2 max-w-[65%] break-words ${
+      className={`relative group rounded-2xl mb-0.5 px-7 py-2 max-w-[65%] wrap-break-words ${
         isImageOnly
           ? 'p-0 bg-transparent'
           : isMyMessage
-            ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+            ? 'bg-linear-to-r from-blue-500 to-indigo-500 text-white'
             : 'bg-gray-700 text-white'
       }`}
     >
@@ -110,7 +110,7 @@ const handleDelete = async () => {
       ) : (
         <>
           {msg.image?.url && (
-            <img src={msg.image.url} className="max-w-[200px] rounded-md" />
+            <img src={msg.image.url} className="max-w-50 rounded-md" />
           )}
 
           {msg.content && <div>{msg.content}</div>}

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../context/context';
-import { Info, PhoneCall, VideoIcon } from 'lucide-react';
+import { ArrowLeft, Info, PhoneCall, VideoIcon } from 'lucide-react';
 import { UseTimeAgo } from '../context/gettimeago';
 import LogoutButton from '../authentication/logout';
 import socket from '../socket/socket.io';
@@ -10,7 +10,7 @@ import { useChat } from '../context/message.context';
 
 function Rightheader() {
   const [showUserInfo, setShowUserInfo] = useState(false);
-  const { user, selectedchat } =
+  const { user, selectedchat, setselectedchat } =
     useAuth();
    const { onlineUsers, lastSeenMap, onlineLoaded} = useChat();
   const otheruser = selectedchat?.members?.find(
@@ -18,38 +18,48 @@ function Rightheader() {
   );
   const lastSeenTime = lastSeenMap[otheruser?._id];
   const timeAgo = UseTimeAgo(lastSeenTime);
-  // console.log(onlineUsers);
-  // console.log(onlineUsers.has(otheruser?._id?.toString()));
+
   useEffect(() => {
     socket.emit('get_online_users');
   }, []);
 
   const handle = () => {
     setShowUserInfo(true);
-    // console.log("first",selectedchat);
+  };
+
+  const handleBack = () => {
+    setselectedchat(null);
   };
 
   return (
-    <div className="flex items-center justify-between px-5 py-3 border-b">
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between px-3 md:px-5 py-3 border-b">
+      <div className="flex items-center gap-2 md:gap-3 min-w-0">
+        {/* Back button - mobile only */}
+        <button
+          onClick={handleBack}
+          className="md:hidden p-1 -ml-1 rounded-full hover:bg-gray-100 shrink-0"
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-700" />
+        </button>
+
         {selectedchat.isGroup ? (
-          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold shrink-0">
             {selectedchat.chatName?.charAt(0).toUpperCase()}
           </div>
         ) : (
           <img
             src={otheruser?.avatar?.url || '/default-avatar.png'}
-            className="w-10 h-10 rounded-full"
+            className="w-10 h-10 rounded-full shrink-0"
           />
         )}
 
-        <div className="flex flex-col min-h-[24px]">
-          <h2 className="font-semibold text-lg">
+        <div className="flex flex-col min-h-6 min-w-0">
+          <h2 className="font-semibold text-lg truncate">
             {selectedchat.isGroup
               ? selectedchat?.chatName
               : otheruser?.fullname}
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 truncate">
             {!selectedchat.isGroup &&
               (!onlineLoaded
                 ? 'Checking...'
@@ -62,7 +72,7 @@ function Rightheader() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 text-gray-600">
+      <div className="flex items-center gap-3 md:gap-4 text-gray-600 shrink-0">
         <PhoneCall className="cursor-pointer hover:text-gray-500" />
         <VideoIcon className="cursor-pointer hover:text-gray-500" />
         <Info
@@ -78,10 +88,10 @@ function Rightheader() {
             className="fixed inset-0 bg-black/40 z-40"
           />
 
-          <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 flex items-center justify-center z-50 px-4">
             <div
               onClick={(e) => e.stopPropagation()}
-              className="bg-white w-[400px] rounded-lg shadow-lg"
+              className="bg-white w-full max-w-100 rounded-lg shadow-lg"
             >
               <div className="p-4 border-b flex justify-between items-center">
                 <h2 className="font-semibold text-lg">

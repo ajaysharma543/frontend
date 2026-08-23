@@ -323,20 +323,19 @@ function Leftchat({ search, setsearch }) {
   }, []);
 
   return (
-    <div className="h-full flex flex-col bg-white">
-      <h1 className="p-4 text-lg font-semibold border-b">My Chats</h1>
+   <div className="h-full w-full flex-1 flex flex-col bg-white">
+<h1 className="p-4 text-lg font-semibold border-b hidden md:block">My Chats</h1>
+  <Groupchat setFilteredUsers={setFilteredUsers} />
 
-      <Groupchat setFilteredUsers={setFilteredUsers} />
-
-      <Leftuser
-        setsearch={setsearch}
-        setdebounce={setdebounce}
-        filteredUsers={filteredUsers}
-        setFilteredUsers={setFilteredUsers}
-        loading={loading}
-        error={error}
-      />
-    </div>
+  <Leftuser
+    setsearch={setsearch}
+    setdebounce={setdebounce}
+    filteredUsers={filteredUsers}
+    setFilteredUsers={setFilteredUsers}
+    loading={loading}
+    error={error}
+  />
+</div>
   );
 }
 

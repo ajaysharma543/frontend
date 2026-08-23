@@ -7,28 +7,28 @@ import { useAuth } from '../context/context';
 
 function Search({ setsearch }) {
   const [showProfile, setShowProfile] = useState(false);
-  // console.log(notifications);
   const { user } = useAuth();
+
   return (
-    <div className="w-full flex items-center bg-white px-6 py-2 border-b">
-      <div className="w-1/6 flex justify-center">
-        <div className="flex items-center px-3 py-1 bg-gray-200 rounded-lg border border-transparent focus-within:border-gray-900">
-          <SearchIcon className="text-black mr-2" />
+    <div className="w-full flex items-center justify-between bg-white px-3 md:px-6 py-2 border-b gap-2">
+      <div className="flex-1 md:w-1/6 flex justify-start md:justify-center">
+        <div className="flex items-center px-2 md:px-3 py-1 bg-gray-200 rounded-lg border border-transparent focus-within:border-gray-900 w-full md:w-auto">
+          <SearchIcon className="text-black mr-2 shrink-0" size={20} />
 
           <input
             type="text"
             placeholder="Search user..."
             onChange={(e) => setsearch(e.target.value)}
-            className="outline-none text-black"
+            className="outline-none text-black bg-transparent w-full md:w-auto"
           />
         </div>
       </div>
 
-      <div className="w-4/6 text-center">
+      <div className="hidden md:block md:w-4/6 text-center">
         <h1 className="text-xl font-bold text-black">Talk-A-Tive</h1>
       </div>
 
-      <div className="w-1/6 flex items-center justify-end gap-4">
+      <div className="flex items-center justify-end gap-2 md:gap-4 shrink-0">
         <Notifications />
         <button
           onClick={() => setShowProfile(true)}
@@ -49,7 +49,7 @@ function Search({ setsearch }) {
           </div>
         </button>
         {showProfile && (
-          <div className="fixed right-0 top-0  w-80 bg-white shadow-lg z-50 flex flex-col">
+          <div className="fixed right-0 top-0 w-80 bg-white shadow-lg z-50 flex flex-col">
             <Profile close={() => setShowProfile(false)} />
           </div>
         )}
