@@ -13,8 +13,8 @@ function Dashboard() {
 
   return (
     <>
-    <div
-  className="h-dvh bg-black flex flex-col overflow-hidden"
+ <div
+  className="fixed inset-0 bg-black flex flex-col overflow-hidden"
   style={{ backgroundImage: `url(${bg})` }}
 >
         {/* Search: hidden on mobile when a chat is open, always shown on md+ */}

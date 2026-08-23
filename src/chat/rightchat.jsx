@@ -213,38 +213,38 @@ function Rightchat() {
   );
 
   return (
-  <div className="h-full w-full flex-1 flex flex-col min-w-0">
-    <div className="flex-shrink-0">
-      <Rightheader />
-    </div>
-
-    <div className="flex-1 overflow-y-auto p-3 md:p-4">
-      {loadingMessages ? (
-        <MessageSkeleton />
-      ) : (
-        <Displaymessage
-          messages={messages}
-          bottomRef={bottomRef}
-          setmessges={setmessges}
-        />
-      )}
-      <Typing
-        isTyping={isTyping}
-        setIsTyping={setIsTyping}
-        otheruser={otheruser}
-        typingTimeoutRef={typingTimeoutRef}
-      />
-
-      <div ref={bottomRef}></div>
-    </div>
-
-    <div className="flex-shrink-0">
-      <Inputfooter
-        setmessges={setmessges}
-        typingTimeoutRef={typingTimeoutRef}
-      />
-    </div>
+ <div className="h-full w-full flex-1 flex flex-col min-w-0">
+  <div className="flex-shrink-0 sticky top-0 z-10 bg-white">
+    <Rightheader />
   </div>
+
+  <div className="flex-1 overflow-y-auto p-3 md:p-4">
+    {loadingMessages ? (
+      <MessageSkeleton />
+    ) : (
+      <Displaymessage
+        messages={messages}
+        bottomRef={bottomRef}
+        setmessges={setmessges}
+      />
+    )}
+    <Typing
+      isTyping={isTyping}
+      setIsTyping={setIsTyping}
+      otheruser={otheruser}
+      typingTimeoutRef={typingTimeoutRef}
+    />
+
+    <div ref={bottomRef}></div>
+  </div>
+
+  <div className="flex-shrink-0">
+    <Inputfooter
+      setmessges={setmessges}
+      typingTimeoutRef={typingTimeoutRef}
+    />
+  </div>
+</div>
   );
 }
 
