@@ -87,8 +87,8 @@ function Rightchat() {
   }, [selectedchat?._id]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}, [messages, isTyping]);
 
   useEffect(() => {
     if (!selectedchat?._id) return;
